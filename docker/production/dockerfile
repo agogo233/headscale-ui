@@ -40,8 +40,8 @@ ENV PROJECT_URL="https://github.com/AoThen/headscale-ui"
 ENV HTTP_PORT="8080"
 ENV HTTPS_PORT="8443"
 
-ENV TLS_CERT_PATH="/CA/cert.pem"
-ENV TLS_KEY_PATH="/CA/key.pem"
+#ENV TLS_CERT_PATH="/CA/cert.pem"
+#ENV TLS_KEY_PATH="/CA/key.pem"
 
 # Production Web Server port. Runs a self signed SSL certificate
 EXPOSE 443
