@@ -61,7 +61,7 @@ COPY --from=build /staging/${PROJECT_NAME}/build /webXui
 RUN apk add --no-cache caddy
 
 # Create a group and user
-RUN addgroup -S appgroup && adduser -D appuser -G appgroup && mkdir /CA
+RUN addgroup -S appgroup && adduser -D appuser -G appgroup
 
 # Set permissions for all scripts. We do not want normal users to have write
 # access to the scripts
