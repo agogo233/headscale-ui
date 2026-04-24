@@ -1,7 +1,10 @@
-FROM node:lts
+ FROM node:lts
 
-# Volumes
-VOLUME /data
+ # Build arguments
+ ARG BASE_PATH="/webXui"
+
+ # Volumes
+ VOLUME /data
 
 # Ports
 # openvscode server port. Note: Runs HTTP by default
@@ -18,14 +21,16 @@ ENV AUTOINITIALIZE=false
 ENV USE_CONNECTION_TOKEN=true
 #Set to a secret to have some measure of protection for vscode. Randomized if left blank
 ENV CONNECTION_TOKEN=
-# Project name. Typically the same as the project in the URL
-ENV PROJECT_NAME="headscale-ui"
-# URL for the github/git location
-ENV PROJECT_URL="https://github.com/gurucomputing/headscale-ui"
-# autostart the dev command on boot?
-ENV AUTOSTART="false"
-# command to run in the background on startup
-ENV DEV_COMMAND="npm run dev"
+ # Project name. Typically the same as the project in the URL
+ ENV PROJECT_NAME="headscale-ui"
+ # URL for the github/git location
+ ENV PROJECT_URL="https://github.com/gurucomputing/headscale-ui"
+ # Base path for the application (used during build)
+ ENV BASE_PATH=${BASE_PATH}
+ # autostart the dev command on boot?
+ ENV AUTOSTART="false"
+ # command to run in the background on startup
+ ENV DEV_COMMAND="npm run dev"
 
 # Set the staging environment
 WORKDIR /staging/scripts
