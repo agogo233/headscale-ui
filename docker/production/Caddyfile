@@ -6,20 +6,20 @@
 }
 
 :{$HTTP_PORT} {
-	redir / /webXui
-	uri strip_prefix /webXui
+	redir / {env.BASE_PATH}
+	uri strip_prefix {env.BASE_PATH}
 	file_server {
-		root /webXui
+		root {env.BASE_PATH}
 	}
 }
 
 :{$HTTPS_PORT} {
-	redir / /webXui
-	uri strip_prefix /webXui
+	redir / {env.BASE_PATH}
+	uri strip_prefix {env.BASE_PATH}
 	tls internal {
 		on_demand
 	}
 	file_server {
-		root /webXui
+		root {env.BASE_PATH}
 	}
 }

@@ -1,9 +1,13 @@
 FROM node:lts AS build
 
-# arguments
-ARG VERSION="master"
-# Branch to check out
-ARG CHECKOUT_BRANCH="master"
+ # arguments
+ ARG VERSION="master"
+ # Branch to check out
+ ARG CHECKOUT_BRANCH="master"
+ # Base path for the application (default: /webXui)
+ ARG BASE_PATH="/webXui"
+ # Expose BASE_PATH to build process
+ ENV BASE_PATH=${BASE_PATH}
 
 #environment variables
 ENV PROJECT_NAME="headscale-ui"
@@ -32,13 +36,15 @@ RUN /staging/scripts/1-image-build.sh
 
 FROM alpine:latest
 
-#environment variables
-ENV PROJECT_NAME="headscale-ui"
-# URL for the github/git location
-ENV PROJECT_URL="https://github.com/AoThen/headscale-ui"
-# Ports that caddy will run on
-ENV HTTP_PORT="8080"
-ENV HTTPS_PORT="8443"
+ #environment variables
+ ENV PROJECT_NAME="headscale-ui"
+ # URL for the github/git location
+ ENV PROJECT_URL="https://github.com/AoThen/headscale-ui"
+ # Base path for the application
+ ENV BASE_PATH=${BASE_PATH}
+ # Ports that caddy will run on
+ ENV HTTP_PORT="8080"
+ ENV HTTPS_PORT="8443"
 
 #ENV TLS_CERT_PATH="/CA/cert.pem"
 #ENV TLS_KEY_PATH="/CA/key.pem"
@@ -46,17 +52,17 @@ ENV HTTPS_PORT="8443"
 # Production Web Server port. Runs a self signed SSL certificate
 EXPOSE 443
 
-# Set the staging environment
-WORKDIR /data
-WORKDIR /webXui
-WORKDIR /staging/scripts
-WORKDIR /staging
+ # Set the staging environment
+ WORKDIR /data
+ WORKDIR ${BASE_PATH}
+ WORKDIR /staging/scripts
+ WORKDIR /staging
 
 # Copy across the scripts folder
 COPY scripts/* ./scripts/
 # Copy default caddy config from project root
 COPY ./Caddyfile /staging/Caddyfile
-COPY --from=build /staging/${PROJECT_NAME}/build /webXui
+ COPY --from=build /staging/${PROJECT_NAME}/build ${BASE_PATH}
 
 RUN apk add --no-cache caddy
 
@@ -68,8 +74,8 @@ RUN addgroup -S appgroup && adduser -D appuser -G appgroup
 RUN chown -R 0:0 scripts
 RUN chmod -R 755 scripts
 
-RUN chown -R appuser:appgroup /webXui
-RUN chown -R appuser:appgroup /data
+ RUN chown -R appuser:appgroup ${BASE_PATH}
+ RUN chown -R appuser:appgroup /data
 
 # Tell docker that all future commands should run as the appuser user
 USER appuser

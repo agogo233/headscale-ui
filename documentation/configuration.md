@@ -2,7 +2,7 @@
 
 (Thanks [DennisGaida](https://github.com/DennisGaida) and [Niek](https://github.com/Niek))
 
-Below is a complete docker-compose example for bringing up Traefik + headscale + headscale-ui. Run with: `docker-compose up -d` and headscale-ui will be accessible at <http://localhost/webXui>.
+Below is a complete docker-compose example for bringing up Traefik + headscale + headscale-ui. Run with: `docker-compose up -d` and headscale-ui will be accessible at <http://localhost/webXui> by default. This base path can be customized using the `BASE_PATH` environment variable.
 
 ```yaml
 version: '3.9'
@@ -27,10 +27,10 @@ services:
     pull_policy: always
     container_name: headscale-ui
     restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.headscale-ui-rtr.rule=PathPrefix(`/webXui`) # you might want to add: && Host(`your.domain.name`)"
-      - traefik.http.services.headscale-ui-svc.loadbalancer.server.port=8080
+     labels:
+       - traefik.enable=true
+       - traefik.http.routers.headscale-ui-rtr.rule=PathPrefix(`/webXui`) # Ensure this matches BASE_PATH; you might want to add: && Host(`your.domain.name`)"
+       - traefik.http.services.headscale-ui-svc.loadbalancer.server.port=8080
 
   traefik:
     image: traefik:latest
@@ -76,12 +76,13 @@ Once all three services are running, set up Headscale and Headscale UI _by creat
 
 1. Details: Enter the FQDN you will be using for Headscale and Headscale UI, and enable Websockets Support and Block Common Exploits. 
 2. SSL: Select or create the SSL certificate you'll be using for the entire FQDN where both will run. Make sure to enable Force SSL, HTTP/2 Support, HSTS and HSTS Subdomains.
-3. Advanced: In the text box, add the following to manage the Headscale UI path properly: 
-  ```json
-    location /webXui/ {
-      proxy_pass https://XXX.XXX.XXX.XXXX:port/webXui/;
-  }
-  ```
+ 3. Advanced: In the text box, add the following to manage the Headscale UI path properly: 
+   ```json
+     # Ensure the path matches your BASE_PATH setting (default: /webXui)
+     location /webXui/ {
+       proxy_pass https://XXX.XXX.XXX.XXXX:port/webXui/;
+   }
+   ```
 
 # Nginx Example Configuration
 From https://github.com/gurucomputing/headscale-ui/issues/71
@@ -96,10 +97,11 @@ map $http_upgrade $connection_upgrade {
 server {
     server_name headscale-01.example.com;
 
-    location /webXui {
-        alias /usr/local/www/headscale-ui;
-        index index.html;
-    }
+     # Ensure this path matches your BASE_PATH setting (default: /webXui)
+     location /webXui {
+         alias /usr/local/www/headscale-ui;
+         index index.html;
+     }
 
     location / {
         proxy_pass http://localhost:8080;

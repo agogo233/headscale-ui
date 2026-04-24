@@ -7,7 +7,7 @@ A web frontend for the [headscale](https://github.com/juanfont/headscale) Tailsc
 > [!WARNING]  
 > The latest major release of headscale ui change the default container ports from `80` and `443` to `8080` and `8443` respectively. If you are using the `HTTP_PORT` or `HTTPS_PORT` environment variables this does not affect you, otherwise you need to change your ports in your docker-compose or kubernetes manifests.
 
-Headscale-UI is currently released as a static site: just take the release and host with your favorite web server. Headscale-UI expects to be served from the `/webXui` path to avoid overlap with headscale on the same domain. Note that due to CORS (see https://github.com/juanfont/headscale/issues/623), headscale UI *must* be served on the same subdomain, or CORS headers injected via reverse proxy.
+Headscale-UI is currently released as a static site: just take the release and host with your favorite web server. By default, Headscale-UI expects to be served from the `/webXui` path to avoid overlap with headscale on the same domain. This base path can be customized using the `BASE_PATH` environment variable. Note that due to CORS (see https://github.com/juanfont/headscale/issues/623), headscale UI *must* be served on the same subdomain, or CORS headers injected via reverse proxy.
 
 ### Docker Installation
 If you are using docker, you can install `headscale` alongside `headscale-ui`, like so:
@@ -25,13 +25,15 @@ services:
       # - 27896:8080
     command: serve
     restart: unless-stopped
-  headscale-ui:
-    image: ghcr.io/gurucomputing/headscale-ui:latest
-    restart: unless-stopped
-    container_name: headscale-ui
-    # ports:
-      # - 8443:8443
-      # - 8080:8080
+   headscale-ui:
+     image: ghcr.io/gurucomputing/headscale-ui:latest
+     restart: unless-stopped
+     container_name: headscale-ui
+     environment:
+       - BASE_PATH=/webXui  # Optional: customize base path (default: /webXui)
+     # ports:
+       # - 8443:8443
+       # - 8080:8080
 ```
 
 Headscale UI serves on port 8080/8443 and uses a self signed cert by default. You will need to add a `config.yaml` file under your `container-config` folder so that `headscale` has all of the required settings declared. An example from the official `headscale` repo is [here](https://github.com/juanfont/headscale/blob/main/config-example.yaml). 
@@ -40,11 +42,18 @@ Headscale UI serves on port 8080/8443 and uses a self signed cert by default. Yo
 The docker container lets you set the following settings:
 | Variable | Description | Example |
 |----|----|----|
+| BASE_PATH | Sets the base path for the application. **Note:** Changing this requires rebuilding the Docker image with `--build-arg BASE_PATH=/yourpath` and setting the same value here. Default: `/webXui` | `/webXui` |
 | HTTP_PORT | Sets the HTTP port to an alternate value | `8080` |
 | HTTPS_PORT | Sets the HTTPS port to an alternate value | `8443` |
 
 ### Proxy Settings
 You will need a reverse proxy to install `headscale-ui` on your domain. Here is an example [Caddy Config](https://caddyserver.com/) to achieve this:
+```
+# Ensure the path matches your BASE_PATH setting (default: /webXui)
+https://hs.yourdomain.com.au {
+	reverse_proxy /webXui* http://headscale-ui:8080
+	reverse_proxy * http://headscale:8080
+}
 ```
 https://hs.yourdomain.com.au {
 	reverse_proxy /webXui* http://headscale-ui:8080

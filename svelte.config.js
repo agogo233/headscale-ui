@@ -9,7 +9,7 @@ const config = {
 			precompress: false
 		}),
 		paths: {
-			base: "/webXui"
+			base: process.env.BASE_PATH || "/webXui"
 		},
 		csp: {
 			mode: "hash",
