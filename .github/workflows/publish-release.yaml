@@ -1,13 +1,13 @@
 name: Publish Release
 
- on:
-   workflow_dispatch:
-     inputs:
-       base_path:
-         description: 'Base path for the application (default: /webXui)'
-         required: false
-         type: string
-         default: '/webXui'
+on:
+  workflow_dispatch:
+    inputs:
+      base_path:
+        description: 'Base path for the application (default: /webXui)'
+        required: false
+        type: string
+        default: '/webXui'
 
 jobs:
   publish:
@@ -60,18 +60,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-       - name: Build and push Docker Image
-         uses: docker/build-push-action@v6
-         with:
-           build-args: |
-             BUILD_DATE=${{ env.BUILD_DATE }}
-             VERSION=${{ env.VERSION }}
-             BASE_PATH=${{ inputs.base_path }}
-           context: ./docker/production
-           tags: |
-             ghcr.io/${{ steps.var.outputs.lower }}:beta
-           platforms: linux/amd64   
-           push: true
+      - name: Build and push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            BUILD_DATE=${{ env.BUILD_DATE }}
+            VERSION=${{ env.VERSION }}
+            BASE_PATH=${{ inputs.base_path }}
+          context: ./docker/production
+          tags: |
+            ghcr.io/${{ steps.var.outputs.lower }}:beta
+          platforms: linux/amd64   
+          push: true
 
 #,linux/arm/v7,linux/arm64/v8 #${{ env.TAGS }}
       # - name: Extract build out of docker image
