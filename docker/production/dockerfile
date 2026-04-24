@@ -36,12 +36,15 @@ RUN /staging/scripts/1-image-build.sh
 
 FROM alpine:latest
 
- #environment variables
- ENV PROJECT_NAME="headscale-ui"
- # URL for the github/git location
- ENV PROJECT_URL="https://github.com/agogo233/headscale-ui"
- # Base path for the application
- ENV BASE_PATH=${BASE_PATH}
+ # arguments (inherit from previous stage or use default)
+ ARG BASE_PATH="/webXui"
+
+  #environment variables
+  ENV PROJECT_NAME="headscale-ui"
+  # URL for the github/git location
+  ENV PROJECT_URL="https://github.com/agogo233/headscale-ui"
+  # Base path for the application
+  ENV BASE_PATH=${BASE_PATH}
  # Ports that caddy will run on
  ENV HTTP_PORT="8080"
  ENV HTTPS_PORT="8443"
