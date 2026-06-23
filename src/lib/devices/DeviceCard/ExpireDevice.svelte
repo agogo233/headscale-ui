@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { getDevices, expireDevice } from '$lib/common/apiFunctions.svelte';
-	import { deviceStore, alertStore } from '$lib/common/stores.js';
+	import { alertStore } from '$lib/common/stores.js';
 	import { Device } from '$lib/common/classes';
 
 	export let device = new Device();

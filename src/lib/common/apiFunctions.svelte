@@ -506,14 +506,17 @@
 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
 		// endpoint url for editing users
-		let endpointURL = `/api/v1/node/${deviceID}/rename/${name}`;
+		let endpointURL = `/api/v1/node/${deviceID}/rename`;
 
 		await fetch(headscaleURL + endpointURL, {
 			method: 'POST',
 			headers: {
 				Accept: 'application/json',
 				Authorization: `Bearer ${headscaleAPIKey}`
-			}
+			},
+			body: JSON.stringify({
+				name: name
+			})
 		})
 			.then((response) => {
 				if (response.ok) {
@@ -620,7 +623,7 @@
  		let headscaleURL = localStorage.getItem('headscaleURL') || '';
  		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
- 		let endpointURL = '/api/v1/preauthkey?id=' + id;
+ 		let endpointURL = '/api/v1/preauthkey/' + id;
 
 		await fetch(headscaleURL + endpointURL, {
 			method: 'DELETE',

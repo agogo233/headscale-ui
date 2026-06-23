@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
 	import { getAPIKeys, expireAPIKey, deleteAPIKey } from '$lib/common/apiFunctions.svelte';
 	import { APIKey } from '$lib/common/classes';
 	import { alertStore } from '$lib/common/stores';

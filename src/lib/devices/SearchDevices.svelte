@@ -2,7 +2,7 @@
 	import { filterDevices } from '$lib/common/searching.svelte';
 	import { deviceSearchStore } from '$lib/common/stores';
 
-	export let overrideSort = false;
+	let overrideSort = false;
 
 	// called when search changes
 	deviceSearchStore.subscribe((value) => {

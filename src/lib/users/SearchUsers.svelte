@@ -2,7 +2,7 @@
 	import { filterUsers } from '$lib/common/searching.svelte';
 	import { userSearchStore } from '$lib/common/stores';
 
-	export let overrideSort = false;
+	let overrideSort = false;
 
 	// called when search changes
 	userSearchStore.subscribe((value) => {
