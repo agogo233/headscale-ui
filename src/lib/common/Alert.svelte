@@ -2,6 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { alertStore } from '$lib/common/stores.js';
+	import { browser } from '$app/environment';
 	export let ms = 3000;
 	let visible = false;
 	let timeout: number;
@@ -19,7 +20,7 @@
 			visible = false;
 		} else {
 			visible = true;
-			if (ms > 0)
+			if (ms > 0 && browser)
 				timeout = window.setTimeout(() => {
 					$alertStore = '';
 				}, ms); // and hide it after ms milliseconds
