@@ -2,7 +2,7 @@
 	import { showACLPagesStore } from '$lib/common/stores';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
-	import { getPolicy, updatePolicy } from '$lib/common/apiFunctions.svelte';
+ 	import { getPolicy, updatePolicy, checkPolicy } from '$lib/common/apiFunctions.svelte';
 	import { alertStore } from '$lib/common/stores';
 
 	let componentLoaded = false;
@@ -29,9 +29,22 @@
 			});
 	}
 
+	function validatePolicy() {
+		checkPolicy(policy)
+			.then(() => {
+				$alertStore = 'Policy syntax is valid';
+			})
+			.catch((error) => {
+				$alertStore = 'Policy validation failed: ' + error;
+			});
+	}
+
 	function savePolicy() {
 		saving = true;
-		updatePolicy(policy)
+		checkPolicy(policy)
+			.then(() => {
+				return updatePolicy(policy);
+			})
 			.then((data) => {
 				policy = data;
 				$alertStore = 'Policy updated successfully';
@@ -57,12 +70,13 @@
 					class="w-full h-96 font-mono text-sm p-4 bg-base-300 rounded-lg"
 					placeholder="Enter ACL policy in HuJSON format..."
 				></textarea>
-				<div class="flex gap-2 mt-4">
-					<button class="btn btn-primary" disabled={saving} on:click={savePolicy}>
-						{#if saving}Saving...{:else}Save Policy{/if}
-					</button>
-					<button class="btn btn-secondary" on:click={loadPolicy}>Reload</button>
-				</div>
+			<div class="flex gap-2 mt-4">
+				<button class="btn btn-primary" disabled={saving} on:click={savePolicy}>
+					{#if saving}Saving...{:else}Save Policy{/if}
+				</button>
+				<button class="btn btn-secondary" on:click={validatePolicy}>Validate</button>
+				<button class="btn btn-secondary" on:click={loadPolicy}>Reload</button>
+			</div>
 			{/if}
 		</div>
 	{/if}

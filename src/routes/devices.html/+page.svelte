@@ -2,7 +2,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { page } from '$app/stores';
-	import { getDevices, getUsers } from '$lib/common/apiFunctions.svelte';
+	import { getDevices, getUsers, getHealth } from '$lib/common/apiFunctions.svelte';
 	import { apiTestStore, deviceFilterStore, deviceStore } from '$lib/common/stores.js';
 	import CreateDevice from '$lib/devices/CreateDevice.svelte';
 	import DeviceCard from '$lib/devices/DeviceCard.svelte';
@@ -21,6 +21,7 @@
 
 	// let's the page know if it's ready to load
 	let componentLoaded = false;
+	let healthStatus = '';
 
 	// We define the meat of our script in onMount as doing so forces client side rendering.
 	// Doing so also does not perform any actions until components are initialized
@@ -34,6 +35,14 @@
 		getUsers();
 		// attempt to pull list of devices
 		getDevices();
+		// check health status
+		getHealth()
+			.then((data) => {
+				healthStatus = data.status || 'unknown';
+			})
+			.catch(() => {
+				healthStatus = 'unknown';
+			});
 		// load the page
 		componentLoaded = true;
 	});
@@ -44,6 +53,9 @@
 	<div in:fade|global>
 		<div in:fade|global class="px-4 pt-4">
 			<h1 class="text-2xl bold text-primary">Device View</h1>
+			{#if healthStatus !== ''}
+				<p class="text-sm text-secondary">Server: {healthStatus}</p>
+			{/if}
 		</div>
 		{#if $apiTestStore === 'succeeded'}
 			<!-- instantiate device based components -->
@@ -62,7 +74,7 @@
 				>
 			</table>
 
-			<CreateDevice bind:newDeviceCardVisible bind:newDeviceKey />
+			<CreateDevice bind:newDeviceCardVisible bind:newDeviceKey} />
 
 			<div class="flex flex-col gap-2">
 				{#each $deviceStore as device}
