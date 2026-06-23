@@ -5,6 +5,7 @@
 	import DevSettings from '$lib/settings/DevSettings.svelte';
 	import ServerSettings from '$lib/settings/ServerSettings.svelte';
 	import ThemeSettings from '$lib/settings/ThemeSettings.svelte';
+	import APIKeyManager from '$lib/settings/APIKeyManager.svelte';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 
@@ -23,6 +24,7 @@
 	<div hidden={!componentLoaded} in:fade|global class="px-4 py-4 w-4/5 max-w-screen-lg">
 		<ServerSettings />
 		<div class="p-4" />
+		<APIKeyManager />
 		<ThemeSettings />
 		<div class="p-4" />
 		<h1 class="text-2xl bold text-primary mb-4">Version</h1>

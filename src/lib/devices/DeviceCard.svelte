@@ -6,6 +6,7 @@
 	import MoveDevice from './DeviceCard/MoveDevice.svelte';
 	import RemoveDevice from './DeviceCard/RemoveDevice.svelte';
 	import RenameDevice from './DeviceCard/RenameDevice.svelte';
+	import ExpireDevice from './DeviceCard/ExpireDevice.svelte';
 
 	export let device = new Device();
 	let cardExpanded = false;
@@ -88,6 +89,7 @@
 		<div class="grow w-full"><DeviceTags {device} /></div>
 		<div class="grow min-w-fit">
 			<RemoveDevice {device} />
+			<ExpireDevice {device} />
 			<button type="button">
 				{#if !cardExpanded}
 					<!-- Icon: chevron down -->
@@ -132,8 +134,16 @@
 							<td>{device.name}</td>
 						</tr>
 						<tr>
-							<DeviceRoutes {device} />
+							<th>Expiry</th>
+							<td>{device.expiry ? new Date(device.expiry).toLocaleString() : 'Never'}</td>
 						</tr>
+						<tr>
+							<th>Register Method</th>
+							<td>{device.registerMethod || 'Unknown'}</td>
+						</tr>
+						<tr>
+								<DeviceRoutes {device} />
+							</tr>
 					</tbody>
 				</table>
 			</div>

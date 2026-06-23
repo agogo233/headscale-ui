@@ -555,4 +555,159 @@
 				throw error;
 			});
 	}
+
+	export async function expireDevice(deviceID: string, disableExpiry: boolean): Promise<any> {
+		let headscaleURL = localStorage.getItem('headscaleURL') || '';
+		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+
+		let endpointURL = `/api/v1/node/${deviceID}/expire`;
+
+		await fetch(headscaleURL + endpointURL, {
+			method: 'POST',
+			headers: {
+				Accept: 'application/json',
+				Authorization: `Bearer ${headscaleAPIKey}`
+			},
+			body: JSON.stringify({
+				disableExpiry: disableExpiry
+			})
+		})
+			.then((response) => {
+				if (response.ok) {
+					return response;
+				} else {
+					return response.text().then((text) => {
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+					});
+				}
+			})
+			.catch((error) => {
+				throw error;
+			});
+	}
+
+	export async function deleteAPIKey(prefix: string): Promise<any> {
+		let headscaleURL = localStorage.getItem('headscaleURL') || '';
+		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+
+		let endpointURL = `/api/v1/apikey/${prefix}`;
+
+		await fetch(headscaleURL + endpointURL, {
+			method: 'DELETE',
+			headers: {
+				Accept: 'application/json',
+				Authorization: `Bearer ${headscaleAPIKey}`
+			}
+		})
+			.then((response) => {
+				if (response.ok) {
+					return response;
+				} else {
+					return response.text().then((text) => {
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+					});
+				}
+			})
+			.catch((error) => {
+				throw error;
+			});
+	}
+
+	export async function deletePreAuthKey(id: string): Promise<any> {
+		let headscaleURL = localStorage.getItem('headscaleURL') || '';
+		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+
+		let endpointURL = `/api/v1/preauthkey/${id}`;
+
+		await fetch(headscaleURL + endpointURL, {
+			method: 'DELETE',
+			headers: {
+				Accept: 'application/json',
+				Authorization: `Bearer ${headscaleAPIKey}`
+			}
+		})
+			.then((response) => {
+				if (response.ok) {
+					return response;
+				} else {
+					return response.text().then((text) => {
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+					});
+				}
+			})
+			.catch((error) => {
+				throw error;
+			});
+	}
+
+	export async function getPolicy(): Promise<string> {
+		let headscaleURL = localStorage.getItem('headscaleURL') || '';
+		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+
+		let endpointURL = '/api/v1/policy';
+		let policyResponse = new Response();
+		let policy = '';
+
+		await fetch(headscaleURL + endpointURL, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				Authorization: `Bearer ${headscaleAPIKey}`
+			}
+		})
+			.then((response) => {
+				if (response.ok) {
+					policyResponse = response;
+				} else {
+					return response.text().then((text) => {
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+					});
+				}
+			})
+			.catch((error) => {
+				throw error;
+			});
+
+		await policyResponse.json().then((data) => {
+			policy = data.policy;
+		});
+		return policy;
+	}
+
+	export async function updatePolicy(policy: string): Promise<string> {
+		let headscaleURL = localStorage.getItem('headscaleURL') || '';
+		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+
+		let endpointURL = '/api/v1/policy';
+		let policyResponse = new Response();
+		let updatedPolicy = '';
+
+		await fetch(headscaleURL + endpointURL, {
+			method: 'PUT',
+			headers: {
+				Accept: 'application/json',
+				Authorization: `Bearer ${headscaleAPIKey}`
+			},
+			body: JSON.stringify({
+				policy: policy
+			})
+		})
+			.then((response) => {
+				if (response.ok) {
+					policyResponse = response;
+				} else {
+					return response.text().then((text) => {
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+					});
+				}
+			})
+			.catch((error) => {
+				throw error;
+			});
+
+		await policyResponse.json().then((data) => {
+			updatedPolicy = data.policy;
+		});
+		return updatedPolicy;
+	}
 </script>

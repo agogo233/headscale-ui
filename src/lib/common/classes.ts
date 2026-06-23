@@ -10,6 +10,12 @@ export class Device {
 	public subnetRoutes: string[] = [];
 	public user: User = new User();
 	public online?: boolean;
+	public machineKey: string = '';
+	public nodeKey: string = '';
+	public discoKey: string = '';
+	public expiry: string = '';
+	public preAuthKey: string = '';
+	public registerMethod: string = '';
 
 	public constructor(init?: Partial<Device>) {
 		Object.assign(this, init);
