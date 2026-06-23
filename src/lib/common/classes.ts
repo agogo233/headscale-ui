@@ -43,7 +43,7 @@ export class APIKey {
 }
 
 export class PreAuthKey {
-	public user: string = '';
+	public user: User | null = null;
 	public id: string = '';
 	public key: string = '';
 	public createdAt: string = '';

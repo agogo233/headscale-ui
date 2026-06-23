@@ -56,17 +56,14 @@
 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
-		let endpointURL = '/api/v1/user/' + currentUserId + '/rename';
+		let endpointURL = '/api/v1/user/' + currentUserId + '/rename/' + newUsername;
 
 		await fetch(headscaleURL + endpointURL, {
 			method: 'POST',
 			headers: {
 				Accept: 'application/json',
 				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				new_name: newUsername
-			})
+			}
 		})
 			.then((response) => {
 				if (response.ok) {
@@ -363,7 +360,7 @@
  		await headscalePreAuthKeyResponse.json().then((data) => {
  			headscalePreAuthKey = data.preAuthKeys;
  			if (userID) {
- 				headscalePreAuthKey = headscalePreAuthKey.filter((k) => k.user === userID);
+  				headscalePreAuthKey = headscalePreAuthKey.filter((k) => k.user?.id === userID);
  			}
  		});
  		return headscalePreAuthKey;
@@ -506,17 +503,14 @@
 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
 		// endpoint url for editing users
-		let endpointURL = `/api/v1/node/${deviceID}/rename`;
+		let endpointURL = `/api/v1/node/${deviceID}/rename/${name}`;
 
 		await fetch(headscaleURL + endpointURL, {
 			method: 'POST',
 			headers: {
 				Accept: 'application/json',
 				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				name: name
-			})
+			}
 		})
 			.then((response) => {
 				if (response.ok) {
@@ -623,9 +617,9 @@
  		let headscaleURL = localStorage.getItem('headscaleURL') || '';
  		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
- 		let endpointURL = '/api/v1/preauthkey/' + id;
+ 		let endpointURL = '/api/v1/preauthkey';
 
-		await fetch(headscaleURL + endpointURL, {
+		await fetch(headscaleURL + endpointURL + '?id=' + id, {
 			method: 'DELETE',
 			headers: {
 				Accept: 'application/json',
