@@ -1,15 +1,14 @@
 <script>
-	import { getDevices } from '$lib/common/apiFunctions.svelte';
+	import { getDevices, approveRoutes } from '$lib/common/apiFunctions.svelte';
 	import { Device } from '$lib/common/classes';
 	import { alertStore } from '$lib/common/stores';
-	import { approveDeviceRoute } from './DeviceRouteAPI.svelte';
 
 	export let route = '';
 	export let device = new Device();
 
 	let routeDisabled = false;
 	function approveRouteAction() {
-		approveDeviceRoute(device.id, [...device.approvedRoutes, route])
+		approveRoutes(device.id, [...device.approvedRoutes, route])
 			.then(() => {
 				// refresh users after editing
 				getDevices();
@@ -20,7 +19,7 @@
 	}
 
 	function removeRouteAction() {
-		approveDeviceRoute(device.id, device.approvedRoutes.filter((r) => r !== route))
+		approveRoutes(device.id, device.approvedRoutes.filter((r) => r !== route))
 			.then(() => {
 				// refresh users after editing
 				getDevices();

@@ -56,15 +56,17 @@
 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
-		// endpoint url for editing users
-		let endpointURL = '/api/v1/user/' + currentUserId + '/rename/' + newUsername;
+		let endpointURL = '/api/v1/user/' + currentUserId + '/rename';
 
 		await fetch(headscaleURL + endpointURL, {
 			method: 'POST',
 			headers: {
 				Accept: 'application/json',
 				Authorization: `Bearer ${headscaleAPIKey}`
-			}
+			},
+			body: JSON.stringify({
+				new_name: newUsername
+			})
 		})
 			.then((response) => {
 				if (response.ok) {
@@ -401,7 +403,7 @@
 			});
 	}
 
-	export async function removePreAuthKey(preAuthKeyID: string): Promise<any> {
+	export async function expirePreAuthKey(preAuthKeyID: string): Promise<any> {
 		// variables in local storage
 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
@@ -442,7 +444,8 @@
 		// endpoint url for editing users
 		let endpointURL = `/api/v1/node/register`;
 
-		await fetch(headscaleURL + endpointURL + '?user=' + userId + '&key=' + key, {
+		let params = new URLSearchParams({ user: userId, key });
+		await fetch(headscaleURL + endpointURL + '?' + params, {
 			method: 'POST',
 			headers: {
 				Accept: 'application/json',

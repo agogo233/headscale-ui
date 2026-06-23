@@ -20,8 +20,7 @@
 </script>
 
 <!-- html -->
-<body>
-	<div hidden={!componentLoaded} in:fade|global class="px-4 py-4 w-4/5 max-w-screen-lg">
+<div hidden={!componentLoaded} in:fade|global class="px-4 py-4 w-4/5 max-w-screen-lg">
 		<ServerSettings />
 		<div class="p-4" />
 		<APIKeyManager />
@@ -32,4 +31,3 @@
 		<div class ="p-4"></div>
 		<DevSettings></DevSettings>
 	</div>
-</body>

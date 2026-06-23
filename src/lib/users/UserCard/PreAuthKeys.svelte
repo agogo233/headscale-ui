@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getPreauthKeys, removePreAuthKey } from '$lib/common/apiFunctions.svelte';
+	import { getPreauthKeys, expirePreAuthKey } from '$lib/common/apiFunctions.svelte';
 	import { PreAuthKey, User } from '$lib/common/classes';
 	import { alertStore, preAuthHideStore } from '$lib/common/stores';
 	import NewPreAuthKey from './PreAuthKeys/NewPreAuthKey.svelte';
@@ -11,7 +11,7 @@
 	let newPreAuthKeyShow = false;
 
 	function expirePreAuthKeyAction(preAuthKeyID: string) {
-		removePreAuthKey(preAuthKeyID)
+		expirePreAuthKey(preAuthKeyID)
 			.then(() => {
 				getPreauthKeysAction();
 			})

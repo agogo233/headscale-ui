@@ -74,7 +74,7 @@
 				>
 			</table>
 
-			<CreateDevice bind:newDeviceCardVisible bind:newDeviceKey} />
+			<CreateDevice bind:newDeviceCardVisible bind:newDeviceKey />
 
 			<div class="flex flex-col gap-2">
 				{#each $deviceStore as device}

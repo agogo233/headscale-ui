@@ -58,8 +58,7 @@
 	}
 </script>
 
-<body>
-	{#if showACLPagesStore}
+{#if $showACLPagesStore}
 		<div hidden={!componentLoaded} in:fade|global class="px-4 py-4 w-4/5 max-w-screen-lg">
 			<h1 class="text-2xl bold text-primary mb-4">ACL Policy</h1>
 			{#if loading}
@@ -80,4 +79,3 @@
 			{/if}
 		</div>
 	{/if}
-</body>
