@@ -71,7 +71,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -106,7 +106,7 @@
 					APIKeyResponse = response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -142,7 +142,7 @@
 				if (response.ok) {
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -175,7 +175,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -204,7 +204,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -236,7 +236,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -315,7 +315,7 @@
 					apiKeysResponse = response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -353,7 +353,7 @@
 					headscalePreAuthKeyResponse = response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -392,7 +392,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -401,7 +401,7 @@
 			});
 	}
 
-	export async function removePreAuthKey(userID: string, preAuthKey: string): Promise<any> {
+	export async function removePreAuthKey(preAuthKeyID: string): Promise<any> {
 		// variables in local storage
 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
@@ -416,8 +416,7 @@
 				Authorization: `Bearer ${headscaleAPIKey}`
 			},
 			body: JSON.stringify({
-				user: userID,
-				key: preAuthKey
+				id: preAuthKeyID
 			})
 		})
 			.then((response) => {
@@ -425,7 +424,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -455,7 +454,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -480,7 +479,7 @@
 				Authorization: `Bearer ${headscaleAPIKey}`
 			},
 			body: JSON.stringify({
-				user: parseInt(userID)
+				user: userID
 			})
 		})
 			.then((response) => {
@@ -488,7 +487,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -518,7 +517,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
@@ -548,7 +547,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).message;
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
 					});
 				}
 			})
