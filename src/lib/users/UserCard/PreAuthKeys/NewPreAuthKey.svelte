@@ -12,12 +12,43 @@
 	let expiry = minDate;
 	let reusable = false;
 	let ephemeral = false;
+	// acl tags, added one at a time
+	let newTag = '';
+	/** @type {string[]} */
+	let tagList = [];
+
+	function addTag() {
+		let normalised = `tag:${newTag.trim().toLowerCase().replace(/^tag:/, '')}`;
+		if (normalised == 'tag:') {
+			$alertStore = 'Tag must not be empty';
+			return;
+		}
+		if (normalised.includes(' ')) {
+			$alertStore = 'Tags must not contain spaces';
+			return;
+		}
+		// remove duplicates
+		if (tagList.includes(normalised)) {
+			newTag = '';
+			return;
+		}
+		tagList.push(normalised);
+		newTag = '';
+	}
+
+	/**
+	 * @param {string} tag
+	 */
+	function removeTag(tag) {
+		tagList = tagList.filter((t) => t !== tag);
+	}
 
 	function NewPreAuthKeyAction() {
-    let formattedDate = new Date(expiry).toISOString();
-		newPreAuthKey(user.id, formattedDate, reusable, ephemeral)
+		let formattedDate = new Date(expiry).toISOString();
+		newPreAuthKey(user.id, formattedDate, reusable, ephemeral, tagList)
 			.then(() => {
 				newPreAuthKeyShow = false;
+				tagList = [];
 				getPreauthKeysAction();
 			})
 			.catch((error) => {
@@ -54,6 +85,37 @@
 					<th>Ephemeral:</th>
 					<td>
 						<input type="checkbox" bind:checked={ephemeral} class="checkbox checkbox-sm text-base-content" />
+					</td>
+				</tr>
+				<tr>
+					<th>Tags:</th>
+					<td>
+						<div class="flex items-center gap-1">
+							<input
+								bind:value={newTag}
+								on:keydown={(e) => {
+									if (e.key === 'Enter') {
+										addTag();
+									}
+								}}
+								class="border rounded px-2 w-32"
+								placeholder="tag"
+							/>
+							<button type="button" on:click={addTag} class="btn btn-xs btn-primary">+ Add</button>
+						</div>
+						<div class="flex flex-wrap gap-1 mt-1">
+							{#each tagList as tag}
+								<span class="badge badge-xs bg-base-300">
+									{tag}
+									<button type="button" on:click={() => removeTag(tag)}>
+										<!-- Cancel symbol -->
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+									</button>
+								</span>
+							{/each}
+						</div>
 					</td>
 				</tr>
 			</tbody>

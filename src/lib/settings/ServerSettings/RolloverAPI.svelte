@@ -9,12 +9,19 @@
 	// get current API keys
 	// Match to current key
 	function getAPIKeysAction(): void {
+		// The stored key is hskey-api-{id12}-{secret64} while the listed prefix
+		// is the masked hskey-api-{id12}-***, so match on the 12-char id.
+		function keyIdentifier(keyStr: string): string {
+			let index = keyStr.indexOf('hskey-api-');
+			return index >= 0 ? keyStr.slice(index + 10, index + 22) : keyStr;
+		}
+
 		getAPIKeys()
 			.then((keys) => {
 				keyList = keys;
 				// match up the current apikey to the keylist
 				keyList.forEach((key) => {
-					if ($APIKeyStore.includes(key.prefix)) {
+					if (keyIdentifier($APIKeyStore) === keyIdentifier(key.prefix)) {
 						currentKey = key;
 						// create the new key
 						newAPIKeyAction()

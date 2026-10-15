@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	import { APIKey, Device, PreAuthKey, User } from '$lib/common/classes';
+	import { APIKey, Device, PendingAuthRequest, PreAuthKey, User } from '$lib/common/classes';
 	import { deviceStore, userStore, apiTestStore} from '$lib/common/stores.js';
 	import { sortDevices, sortUsers } from '$lib/common/sorting.svelte';
 	import { filterDevices, filterUsers } from './searching.svelte';
@@ -366,7 +366,7 @@
  		return headscalePreAuthKey;
  	}
 
-	export async function newPreAuthKey(userID: string, expiry: string, reusable: boolean, ephemeral: boolean): Promise<any> {
+	export async function newPreAuthKey(userID: string, expiry: string, reusable: boolean, ephemeral: boolean, aclTags: string[]): Promise<any> {
 		// variables in local storage
 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
@@ -383,7 +383,8 @@
 				user: userID,
 				expiration: expiry,
 				reusable: reusable,
-				ephemeral: ephemeral
+				ephemeral: ephemeral,
+				aclTags: aclTags
 			})
 		})
 			.then((response) => {
@@ -755,21 +756,21 @@
  				Authorization: `Bearer ${headscaleAPIKey}`
  			}
  		})
- 			.then((response) => {
- 				if (response.ok) {
- 					deviceResponse = response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
+		.then((response) => {
+				if (response.ok) {
+					deviceResponse = response;
+				} else {
+					return response.text().then((text) => {
+						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+					});
+				}
+			})
+			.catch((error) => {
+				throw error;
+			});
 
- 		return await deviceResponse.json();
- 	}
+		return (await deviceResponse.json()).node;
+	}
 
  	export async function approveRoutes(deviceID: string, routes: string[]): Promise<any> {
  		let headscaleURL = localStorage.getItem('headscaleURL') || '';
@@ -832,7 +833,7 @@
  		return await healthResponse.json();
  	}
 
- 	export async function registerAuth(data: { user: string; key?: string }): Promise<any> {
+ 	export async function registerAuth(data: { user: string; authId?: string }): Promise<any> {
  		let headscaleURL = localStorage.getItem('headscaleURL') || '';
  		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
@@ -866,6 +867,36 @@
 
  		let endpointURL = '/api/v1/auth/approve';
 
+  		await fetch(headscaleURL + endpointURL, {
+  			method: 'POST',
+  			headers: {
+  				Accept: 'application/json',
+  				Authorization: `Bearer ${headscaleAPIKey}`
+  			},
+  			body: JSON.stringify({
+  				authId: authID
+  			})
+  		})
+  			.then((response) => {
+  				if (response.ok) {
+  					return response;
+  				} else {
+  					return response.text().then((text) => {
+  						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+  					});
+  				}
+  			})
+  			.catch((error) => {
+  				throw error;
+  			});
+  	}
+
+ 	export async function rejectAuth(authID: string): Promise<any> {
+ 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
+ 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+
+ 		let endpointURL = '/api/v1/auth/reject';
+
  		await fetch(headscaleURL + endpointURL, {
  			method: 'POST',
  			headers: {
@@ -873,7 +904,7 @@
  				Authorization: `Bearer ${headscaleAPIKey}`
  			},
  			body: JSON.stringify({
- 				auth_id: authID
+ 				authId: authID
  			})
  		})
  			.then((response) => {
@@ -890,25 +921,23 @@
  			});
  	}
 
- 	export async function rejectAuth(authID: string): Promise<any> {
+ 	export async function getPendingAuthRequests(): Promise<PendingAuthRequest[]> {
  		let headscaleURL = localStorage.getItem('headscaleURL') || '';
  		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
- 		let endpointURL = '/api/v1/auth/reject';
+ 		let endpointURL = '/api/v1/auth/pending';
+ 		let pendingResponse: Response = new Response();
 
  		await fetch(headscaleURL + endpointURL, {
- 			method: 'POST',
+ 			method: 'GET',
  			headers: {
  				Accept: 'application/json',
  				Authorization: `Bearer ${headscaleAPIKey}`
- 			},
- 			body: JSON.stringify({
- 				auth_id: authID
- 			})
+ 			}
  		})
  			.then((response) => {
  				if (response.ok) {
- 					return response;
+ 					pendingResponse = response;
  				} else {
  					return response.text().then((text) => {
  						throw JSON.parse(text).detail ?? JSON.parse(text).title;
@@ -918,5 +947,7 @@
  			.catch((error) => {
  				throw error;
  			});
+
+ 		return (await pendingResponse.json()).authRequests;
  	}
 </script>

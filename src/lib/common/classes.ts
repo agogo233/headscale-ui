@@ -51,8 +51,23 @@ export class PreAuthKey {
 	public reusable: boolean = false;
 	public ephemeral: boolean = false;
 	public used: boolean = false;
+	public aclTags: string[] = [];
 
 	public constructor(init?: Partial<PreAuthKey>) {
+		Object.assign(this, init);
+	}
+}
+
+export class PendingAuthRequest {
+	public authId: string = '';
+	public hostname: string = '';
+	public user: string = '';
+	public os: string = '';
+	public osVersion: string = '';
+	public routableIPs: string[] = [];
+	public createdAt: string = '';
+
+	public constructor(init?: Partial<PendingAuthRequest>) {
 		Object.assign(this, init);
 	}
 }

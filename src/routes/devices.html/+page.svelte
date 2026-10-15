@@ -6,6 +6,7 @@
 	import { apiTestStore, deviceFilterStore, deviceStore } from '$lib/common/stores.js';
 	import CreateDevice from '$lib/devices/CreateDevice.svelte';
 	import DeviceCard from '$lib/devices/DeviceCard.svelte';
+	import PendingAuthRequests from '$lib/devices/PendingAuthRequests.svelte';
 	import SearchDevices from '$lib/devices/SearchDevices.svelte';
 	import SortDevices from '$lib/devices/SortDevices.svelte';
 	import { onMount } from 'svelte';
@@ -38,10 +39,10 @@
 		// check health status
 		getHealth()
 			.then((data) => {
-				healthStatus = data.status || 'unknown';
+				healthStatus = data.databaseConnectivity ? 'healthy' : 'unknown';
 			})
 			.catch(() => {
-				healthStatus = 'unknown';
+				healthStatus = 'unreachable';
 			});
 		// load the page
 		componentLoaded = true;
@@ -58,6 +59,9 @@
 			{/if}
 		</div>
 		{#if $apiTestStore === 'succeeded'}
+			<!-- pending login requests (device approvals) -->
+			<PendingAuthRequests />
+
 			<!-- instantiate device based components -->
 			<table>
 				<tr

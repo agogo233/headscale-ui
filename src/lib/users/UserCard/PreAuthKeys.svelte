@@ -112,6 +112,13 @@
 								{#if key.ephemeral && key.id != ''}
 									<div class="btn btn-xs capitalize bg-accent text-accent-content mx-1">ephemeral</div>
 								{/if}
+								{#if key.aclTags && key.aclTags.length > 0}
+									<div class="flex flex-wrap gap-1 mt-1">
+										{#each key.aclTags as tag}
+											<span class="badge badge-xs bg-base-300">{tag}</span>
+										{/each}
+									</div>
+								{/if}
 							</td>
 							<td>
 								<!-- Allow ability to expire if not expired -->
