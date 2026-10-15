@@ -9,8 +9,14 @@
 	export let device = new Device();
 
 	function updateTagsAction() {
-		let tagList = device.tags;
-		tagList.push(`tag:${newTag}`);
+		const tagValue = newTag.trim();
+		if (!tagValue || tagValue.includes(' ')) {
+			$alertStore = 'Tag must not be empty or contain spaces';
+			return;
+		}
+
+		let tagList = [...device.tags];
+		tagList.push(`tag:${tagValue}`);
 		// remove duplicates
 		tagList = [...new Set(tagList)];
 		// force lowercase

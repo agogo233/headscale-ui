@@ -4,6 +4,15 @@
 	import { sortDevices, sortUsers } from '$lib/common/sorting.svelte';
 	import { filterDevices, filterUsers } from './searching.svelte';
 
+	function parseApiError(text: string): string {
+		try {
+			const parsed = JSON.parse(text);
+			return parsed?.errors?.[0]?.message ?? parsed?.detail ?? parsed?.title ?? (text || 'Request failed');
+		} catch {
+			return text || 'Request failed';
+		}
+	}
+
 	export async function getUsers() {
 		// variables in local storage
 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
@@ -162,6 +171,7 @@
 		await fetch(headscaleURL + endpointURL, {
 			method: 'POST',
 			headers: {
+				'Content-Type': 'application/json',
 				Accept: 'application/json',
 				Authorization: `Bearer ${headscaleAPIKey}`
 			},
@@ -174,7 +184,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+						throw parseApiError(text);
 					});
 				}
 			})
@@ -476,6 +486,7 @@
 		await fetch(headscaleURL + endpointURL, {
 			method: 'POST',
 			headers: {
+				'Content-Type': 'application/json',
 				Accept: 'application/json',
 				Authorization: `Bearer ${headscaleAPIKey}`
 			},
@@ -488,7 +499,7 @@
 					return response;
 				} else {
 					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
+						throw parseApiError(text);
 					});
 				}
 			})

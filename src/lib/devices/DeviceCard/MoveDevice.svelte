@@ -6,7 +6,8 @@
 
 	export let device = new Device();
 	let deviceMoving = false;
-	let selectedUser = device.user.id;
+	$: isTagged = (device.tags?.length ?? 0) > 0;
+	let selectedUser = device.user?.id;
 
 	function moveDeviceAction() {
 		moveDevice(device.id, selectedUser)
@@ -22,8 +23,10 @@
 </script>
 
 <td>
-	{#if !deviceMoving}
-		{device.user.name}
+	{#if isTagged}
+		<span class="text-base-content/60">Tagged node — managed by tag, cannot be assigned a user</span>
+	{:else if !deviceMoving}
+		{device.user?.name}
 		<!-- edit symbol -->
 		<button
 			on:click={() => {

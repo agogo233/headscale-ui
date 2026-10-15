@@ -10,6 +10,12 @@
 		// remove tag we're trying to remove
 		tagList = tagList.filter(element => element !== tag); 
 
+		// a tagged node must keep at least one tag
+		if (tagList.length === 0) {
+			$alertStore = 'A tagged node must keep at least one tag';
+			return;
+		}
+
 		updateTags(device.id, tagList).then((response) => {
 			// refresh devices after editing
 			getDevices();
