@@ -23,7 +23,10 @@
 	// Doing so also does not perform any actions until components are initialized
 	onMount(async () => {
 		// update user list
-		getUsers();
+		getUsers().then(
+			() => apiTestStore.set('succeeded'),
+			() => apiTestStore.set('failed')
+		);
 		// load the page
 		componentLoaded = true;
 	});

@@ -32,10 +32,11 @@
 		newDeviceKey = $page.url.searchParams.get('nodekey') ?? ''
 		newDeviceCardVisible = newDeviceKey.length > 0 ? true : false
 
-		// update user list
-		getUsers();
-		// attempt to pull list of devices
-		getDevices();
+		// aggregate the parallel loads: either failing means the page is not usable
+		Promise.allSettled([getUsers(), getDevices()]).then((results) => {
+			const allOk = results.every((r) => r.status === 'fulfilled');
+			apiTestStore.set(allOk ? 'succeeded' : 'failed');
+		});
 		// check health status
 		getHealth()
 			.then((data) => {
