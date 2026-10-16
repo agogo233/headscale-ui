@@ -1,6 +1,7 @@
 name: Publish Release
 
 on:
+  push:
   workflow_dispatch:
     inputs:
       base_path:
@@ -66,7 +67,7 @@ jobs:
           build-args: |
             BUILD_DATE=${{ env.BUILD_DATE }}
             VERSION=${{ env.VERSION }}
-            BASE_PATH=${{ inputs.base_path }}
+            BASE_PATH=${{ inputs.base_path || '/webXui' }}
           context: ./docker/production
           tags: |
             ghcr.io/${{ steps.var.outputs.lower }}:beta
