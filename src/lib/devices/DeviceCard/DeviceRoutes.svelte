@@ -10,7 +10,7 @@
 <th>Device Routes</th>
 <td
 	><ul class="list-disc list-inside">
-		{#each device.availableRoutes as route}
+		{#each [...new Set([...device.availableRoutes, ...device.approvedRoutes])] as route (route)}
 			<li>
 				<DeviceRoute {route} {device}></DeviceRoute>
 			</li>

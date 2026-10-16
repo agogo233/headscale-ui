@@ -57,7 +57,7 @@
 			<CreateUser bind:newUserCardVisible />
 
 			<div class="flex flex-col gap-2">
-				{#each $userStore as user}
+				{#each $userStore as user (user.id)}
 					{#if $userFilterStore.includes(user)}
 						<UserCard {user} />
 					{/if}

@@ -133,6 +133,7 @@
 								bind:value={newTag}
 								on:keydown={(e) => {
 									if (e.key === 'Enter') {
+										e.preventDefault();
 										addTag();
 									}
 								}}

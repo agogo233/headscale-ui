@@ -2,6 +2,7 @@
 	import { getAPIKeys, expireAPIKey, deleteAPIKey } from '$lib/common/apiFunctions.svelte';
 	import { APIKey } from '$lib/common/classes';
 	import { alertStore } from '$lib/common/stores';
+	import { onMount } from 'svelte';
 
 	let keyList = [new APIKey()];
 	let loading = false;
@@ -50,7 +51,7 @@
 		return parsed.toLocaleString();
 	}
 
-	loadKeys();
+	onMount(loadKeys);
 </script>
 
 <div class="mt-4">

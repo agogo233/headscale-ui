@@ -98,7 +98,7 @@
 				{#if device.online}
 					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip=online /> {device.id}: {device.givenName}
 				{:else}
-					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip={timeSince(new Date(device.lastSeen))} /> {device.id}: {device.givenName}
+					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip={device.lastSeen ? timeSince(new Date(device.lastSeen)) : 'Never seen'} /> {device.id}: {device.givenName}
 				{/if}
 			{/if}
 			<RenameDevice bind:cardEditing {device} />
@@ -130,7 +130,7 @@
 					<tbody>
 						<tr>
 							<th>Device Last Seen</th>
-							<td>{new Date(device.lastSeen)}</td>
+							<td>{device.lastSeen ? new Date(device.lastSeen) : 'Never'}</td>
 						</tr>
 						<tr>
 							<th>IP Addresses</th>
