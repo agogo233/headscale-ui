@@ -25,6 +25,23 @@
 		return 'bg-error';
 	}
 
+	// maps the backend's register method enum to display text
+	function registerMethodLabel(method: string) {
+		if (!method || method === 'REGISTER_METHOD_UNSPECIFIED') {
+			return 'Unknown';
+		}
+		if (method === 'REGISTER_METHOD_AUTH_KEY') {
+			return 'Auth Key';
+		}
+		if (method === 'REGISTER_METHOD_OIDC') {
+			return 'OIDC';
+		}
+		if (method === 'REGISTER_METHOD_CLI') {
+			return 'CLI';
+		}
+		return method;
+	}
+
 	// return button colour based on online status
 	function onlineBackground(online: boolean) {
 		return online ? 'bg-success' : 'bg-error';
@@ -139,7 +156,7 @@
 						</tr>
 						<tr>
 							<th>Register Method</th>
-							<td>{device.registerMethod || 'Unknown'}</td>
+							<td>{registerMethodLabel(device.registerMethod)}</td>
 						</tr>
 						<tr>
 								<DeviceRoutes {device} />

@@ -9,7 +9,7 @@
 	export let device = new Device();
 
 	function updateTagsAction() {
-		const tagValue = newTag.trim();
+		const tagValue = newTag.trim().toLowerCase().replace(/^tag:/, '');
 		if (!tagValue || tagValue.includes(' ')) {
 			$alertStore = 'Tag must not be empty or contain spaces';
 			return;

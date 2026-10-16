@@ -14,7 +14,7 @@ export class Device {
 	public nodeKey: string = '';
 	public discoKey: string = '';
 	public expiry: string = '';
-	public preAuthKey: string = '';
+	public preAuthKey: Record<string, unknown> | null = null;
 	public registerMethod: string = '';
 
 	public constructor(init?: Partial<Device>) {

@@ -12,7 +12,7 @@
 
 		// a tagged node must keep at least one tag
 		if (tagList.length === 0) {
-			$alertStore = 'A tagged node must keep at least one tag';
+			$alertStore = 'Add another tag first - a tagged node cannot have zero tags';
 			return;
 		}
 
