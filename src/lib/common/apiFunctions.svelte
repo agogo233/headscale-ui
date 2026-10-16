@@ -187,11 +187,6 @@
 		});
 	}
 
-	export async function getDevice(deviceID: string): Promise<Device> {
-		const data = await apiFetch<{ node: Device }>('GET', `/api/v1/node/${deviceID}`);
-		return data.node;
-	}
-
 	export async function approveRoutes(deviceID: string, routes: string[]): Promise<any> {
 		return apiFetch('POST', `/api/v1/node/${deviceID}/approve_routes`, {
 			routes: routes
