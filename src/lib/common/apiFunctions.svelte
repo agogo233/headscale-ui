@@ -202,8 +202,10 @@
 		return apiFetch('GET', '/api/v1/health');
 	}
 
-	export async function registerAuth(data: { user: string; authId?: string }): Promise<any> {
-		return apiFetch('POST', '/api/v1/auth/register', data);
+	// getVersion queries the public /version endpoint (no auth required) and
+	// returns the headscale server version.
+	export async function getVersion(): Promise<{ version: string; commit: string }> {
+		return apiFetch('GET', '/version');
 	}
 
 	export async function approveAuth(authID: string): Promise<any> {
