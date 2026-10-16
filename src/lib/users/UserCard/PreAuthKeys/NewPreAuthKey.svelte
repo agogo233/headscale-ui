@@ -16,6 +16,33 @@
 	let newTag = '';
 	/** @type {string[]} */
 	let tagList = [];
+	// the freshly created key, shown once in plaintext
+	let createdKey = '';
+	let copied = false;
+
+	function copyKey() {
+		if (!navigator.clipboard) {
+			$alertStore = 'Copy is not available - select the key and copy it manually';
+			return;
+		}
+		navigator.clipboard
+			.writeText(createdKey)
+			.then(() => {
+				copied = true;
+				setTimeout(() => {
+					copied = false;
+				}, 2000);
+			})
+			.catch(() => {
+				$alertStore = 'Copy failed - select the key and copy it manually';
+			});
+	}
+
+	function closePanel() {
+		createdKey = '';
+		copied = false;
+		newPreAuthKeyShow = false;
+	}
 
 	function addTag() {
 		let normalised = `tag:${newTag.trim().toLowerCase().replace(/^tag:/, '')}`;
@@ -46,9 +73,10 @@
 	function NewPreAuthKeyAction() {
 		let formattedDate = new Date(expiry).toISOString();
 		newPreAuthKey(user.id, formattedDate, reusable, ephemeral, tagList)
-			.then(() => {
-				newPreAuthKeyShow = false;
+			.then((key) => {
+				createdKey = key;
 				tagList = [];
+				newTag = '';
 				getPreauthKeysAction();
 			})
 			.catch((error) => {
@@ -68,7 +96,17 @@
 </script>
 
 <div in:fade|global class="card-pending">
-	<form on:submit|preventDefault={NewPreAuthKeyAction}>
+	{#if createdKey}
+		<div class="p-3">
+			<p class="text-sm text-warning mb-1">Copy this key now — it will not be shown again.</p>
+			<div class="flex gap-1 items-center">
+				<code class="block border rounded px-2 py-1 text-xs overflow-auto max-w-full">{createdKey}</code>
+				<button type="button" on:click={copyKey} class="btn btn-xs btn-primary shrink-0">{copied ? 'Copied' : 'Copy'}</button>
+			</div>
+			<button class="btn btn-sm m-3 btn-secondary capitalize" type="button" on:click={closePanel}>Done</button>
+		</div>
+	{:else}
+		<form on:submit|preventDefault={NewPreAuthKeyAction}>
 		<table class="table table-compact w-full">
 			<tbody>
 				<tr>
@@ -129,4 +167,5 @@
 			class="btn btn-sm m-1 btn-secondary capitalize">Cancel</button
 		>
 	</form>
+	{/if}
 </div>
