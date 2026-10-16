@@ -43,7 +43,11 @@
 
 	function formatDate(date: string): string {
 		if (!date) return 'Never';
-		return new Date(date).toLocaleString();
+		const parsed = new Date(date);
+		// Keys created without an expiration are zero-stamped by the backend,
+		// which treats the zero instant as already expired.
+		if (parsed.getFullYear() <= 1) return 'Expired';
+		return parsed.toLocaleString();
 	}
 
 	loadKeys();

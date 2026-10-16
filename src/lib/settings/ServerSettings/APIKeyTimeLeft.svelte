@@ -19,7 +19,12 @@
         }
         keyList.forEach(key => {
           if(keyIdentifier($APIKeyStore) === keyIdentifier(key.prefix)) {
-            timeLeft(new Date(key.expiration));
+            const expiry = key.expiration ? new Date(key.expiration) : null;
+            // A null expiration never expires; a zero-stamped one is already
+            // expired and must not trip the rolling warning.
+            if(expiry && expiry.getFullYear() > 1) {
+              timeLeft(expiry);
+            }
           }
         });
 			})

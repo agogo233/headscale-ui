@@ -19,7 +19,14 @@
 	}
 
 	function removeRouteAction() {
-		approveRoutes(device.id, device.approvedRoutes.filter((r) => r !== route))
+		// The backend expands an exit route to both families, so removing one
+		// must strip both or it re-expands and the route stays approved.
+		const exitRoutes = ['0.0.0.0/0', '::/0'];
+		const isExitRoute = exitRoutes.includes(route);
+		const remainingRoutes = device.approvedRoutes.filter(
+			(r) => r !== route && !(isExitRoute && exitRoutes.includes(r))
+		);
+		approveRoutes(device.id, remainingRoutes)
 			.then(() => {
 				// refresh users after editing
 				getDevices();
