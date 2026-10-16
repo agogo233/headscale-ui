@@ -5,6 +5,18 @@
 	import NewPreAuthKey from './PreAuthKeys/NewPreAuthKey.svelte';
 	import { onMount } from 'svelte';
 
+	// The v1 API zero-stamps an unset expiration to 0001-01-01, which the
+	// backend treats as "never expires" (PreAuthKey.IsExpired: unset -> false).
+	// Keys created through this UI always carry a real expiry, so a year-1
+	// date in practice means "no expiry set".
+	function isNeverExpiring(expiration: string): boolean {
+		return !expiration || new Date(expiration).getFullYear() <= 1;
+	}
+
+	function isExpired(expiration: string): boolean {
+		return !isNeverExpiring(expiration) && new Date(expiration).getTime() < new Date().getTime();
+	}
+
 	// function for refreshing users from parent
 	export let user = new User();
 	export let keyList = [new PreAuthKey];
@@ -90,12 +102,14 @@
 			<tbody>
 				{#each keyList as key}
 						<!-- hide if key is expired or used (and not reusable) and checkbox is checked -->
-						<tr class:hidden={$preAuthHideStore && ((key.used && !key.reusable) || new Date(key.expiration).getTime() < new Date().getTime())}>
+						<tr class:hidden={$preAuthHideStore && ((key.used && !key.reusable) || isExpired(key.expiration))}>
 							<th>{key.id}</th>
 							<td
 								><code class="border p-1 rounded">{key.key}</code>
-								<div class="tooltip" data-tip={new Date(key.expiration).toLocaleString()}>
-									{#if new Date(key.expiration).getTime() > new Date().getTime()}
+								<div class="tooltip" data-tip={isNeverExpiring(key.expiration) ? 'never expires' : new Date(key.expiration).toLocaleString()}>
+									{#if key.id != '' && isNeverExpiring(key.expiration)}
+										<div class="btn btn-xs capitalize bg-info text-info-content mx-1">never</div>
+									{:else if new Date(key.expiration).getTime() > new Date().getTime()}
 										<div class="btn btn-xs capitalize bg-success text-success-content mx-1">active</div>
 									{:else if key.id != ''}
 										<div class="btn btn-xs capitalize bg-error text-error-content mx-1">expired</div>
@@ -122,7 +136,7 @@
 							</td>
 							<td>
 								<!-- Allow ability to expire if not expired -->
-								{#if new Date(key.expiration).getTime() > new Date().getTime() && (!key.used || key.reusable)}
+								{#if key.id != '' && (isNeverExpiring(key.expiration) || new Date(key.expiration).getTime() > new Date().getTime()) && (!key.used || key.reusable)}
 								<!-- trash symbol -->
 								<button class="mr-2" on:click={() => {expirePreAuthKeyAction(key.id)}}
 									><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
