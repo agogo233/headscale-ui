@@ -1,964 +1,225 @@
 <script context="module" lang="ts">
 	import { APIKey, Device, PendingAuthRequest, PreAuthKey, User } from '$lib/common/classes';
-	import { deviceStore, userStore, apiTestStore} from '$lib/common/stores.js';
+	import { deviceStore, userStore } from '$lib/common/stores.js';
 	import { sortDevices, sortUsers } from '$lib/common/sorting.svelte';
 	import { filterDevices, filterUsers } from './searching.svelte';
 
+	// parseApiError extracts a human-readable message from the backend error
+	// body. Huma validation errors (415/422) carry a generic detail
+	// ("validation failed") with the real reason in errors[0].message, so that
+	// sentinel is unwrapped. Non-JSON bodies (proxy error pages) fall back to
+	// the raw text instead of throwing a SyntaxError.
 	function parseApiError(text: string): string {
 		try {
 			const parsed = JSON.parse(text);
-			return parsed?.errors?.[0]?.message ?? parsed?.detail ?? parsed?.title ?? (text || 'Request failed');
+			let detail = parsed?.detail || parsed?.title;
+			if (detail === 'validation failed') {
+				detail = parsed?.errors?.[0]?.message || detail;
+			}
+			return detail || text || 'Request failed';
 		} catch {
 			return text || 'Request failed';
 		}
 	}
 
-	export async function getUsers() {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+	// apiFetch is the single HTTP entry point for the v1 API. It centralises
+	// the bearer header, the JSON content type (required by the backend for any
+	// request body) and error parsing so every call behaves identically.
+	async function apiFetch<T = unknown>(method: string, path: string, body?: object): Promise<T> {
+		const headscaleURL = localStorage.getItem('headscaleURL') || '';
+		const headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
 
-		// endpoint url for getting users
-		let endpointURL = '/api/v1/user';
+		const headers: Record<string, string> = {
+			Accept: 'application/json',
+			Authorization: `Bearer ${headscaleAPIKey}`
+		};
+		let bodyText: string | undefined;
+		if (body !== undefined) {
+			headers['Content-Type'] = 'application/json';
+			bodyText = JSON.stringify(body);
+		}
 
-		//returning variables
-		let headscaleUsers = [new User()];
-		let headscaleUsersResponse: Response = new Response();
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					// return the api data
-					headscaleUsersResponse = response;
-				} else {
-					return response.text().then((text) => {
-						apiTestStore.set('failed');
-						throw text;
-					});
-				}
-			})
-			.catch((error) => {
-				apiTestStore.set('failed');
-				throw error;
-			});
-
-		await headscaleUsersResponse.json().then((data) => {
-			headscaleUsers = data.users;
-			// sort the users
-			headscaleUsers = sortUsers(headscaleUsers);
+		const response = await fetch(headscaleURL + path, {
+			method,
+			headers,
+			body: bodyText
 		});
-		// Set the store
-		apiTestStore.set('succeeded');
+
+		if (!response.ok) {
+			const text = await response.text();
+			throw parseApiError(text);
+		}
+
+		try {
+			return (await response.json()) as T;
+		} catch {
+			throw 'Received an unexpected response from the server';
+		}
+	}
+
+	export async function getUsers() {
+		const data = await apiFetch<{ users: User[] }>('GET', '/api/v1/user');
+		const headscaleUsers = sortUsers(data.users ?? []);
 		userStore.set(headscaleUsers);
-		// Filter the store
 		filterUsers();
 	}
 
 	export async function editUser(currentUserId: string, newUsername: string): Promise<any> {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		let endpointURL = '/api/v1/user/' + currentUserId + '/rename/' + newUsername;
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		const endpointURL = '/api/v1/user/' + currentUserId + '/rename/' + encodeURIComponent(newUsername.toLowerCase());
+		return apiFetch('POST', endpointURL);
 	}
 
 	export async function newAPIKey(APIKeyExpiration: string): Promise<string> {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = '/api/v1/apikey';
-
-		let APIKeyResponse = new Response();
-		let APIKeyString = '';
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				expiration: APIKeyExpiration
-			})
-		})
-			.then((response) => {
-				if (response.ok) {
-					APIKeyResponse = response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
-		await APIKeyResponse.json().then((data) => {
-			APIKeyString = data.apiKey;
+		const data = await apiFetch<{ apiKey: string }>('POST', '/api/v1/apikey', {
+			expiration: APIKeyExpiration
 		});
-
-		return APIKeyString;
+		return data.apiKey;
 	}
 
 	export async function expireAPIKey(APIKeyPrefix: string) {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = '/api/v1/apikey/expire';
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				prefix: APIKeyPrefix
-			})
-		})
-			.then((response) => {
-				if (response.ok) {
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		await apiFetch('POST', '/api/v1/apikey/expire', {
+			prefix: APIKeyPrefix
+		});
 	}
 
 	export async function updateTags(deviceID: string, tags: string[]): Promise<any> {
-
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = `/api/v1/node/${deviceID}/tags`;
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				tags: tags
-			})
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw parseApiError(text);
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('POST', `/api/v1/node/${deviceID}/tags`, {
+			tags: tags
+		});
 	}
 
 	export async function removeUser(currentUserId: string): Promise<any> {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = '/api/v1/user/' + currentUserId;
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'DELETE',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('DELETE', '/api/v1/user/' + currentUserId);
 	}
 
 	export async function newUser(newUsername: string): Promise<any> {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = '/api/v1/user';
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				name: newUsername.toLowerCase()
-			})
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('POST', '/api/v1/user', {
+			name: newUsername.toLowerCase()
+		});
 	}
 
-	export async function getDevices(): Promise<any> {
-
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for getting devices
-		let endpointURL = `/api/v1/node`;
-
-		//returning variables
-		let headscaleDevices = [new Device()];
-		let headscaleDeviceResponse: Response = new Response();
-
-		// attempt to get the user data
-		await fetch(headscaleURL + endpointURL, {
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					// return the api data
-					headscaleDeviceResponse = response;
-				} else {
-					return response.text().then((text) => {
-						apiTestStore.set('failed');
-						throw text;
-					});
-				}
-			})
-			.catch((error) => {
-				apiTestStore.set('failed');
-				throw error;
-			});
-
-		await headscaleDeviceResponse.json().then((data) => {
-			headscaleDevices = data[`nodes`];
-			headscaleDevices = sortDevices(headscaleDevices);
-		});
-		// set the stores
-		apiTestStore.set('succeeded');
+	export async function getDevices(): Promise<void> {
+		const data = await apiFetch<{ nodes: Device[] }>('GET', `/api/v1/node`);
+		const headscaleDevices = sortDevices(data.nodes ?? []);
 		deviceStore.set(headscaleDevices);
-		// filter the store
 		filterDevices();
 	}
 
 	export async function getAPIKeys(): Promise<APIKey[]> {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = '/api/v1/apikey';
-		let apiKeysResponse = new Response();
-		let apiKeys = [new APIKey()];
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					apiKeysResponse = response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
-
-		await apiKeysResponse.json().then((data) => {
-			apiKeys = data.apiKeys;
-		});
-		return apiKeys;
+		const data = await apiFetch<{ apiKeys: APIKey[] }>('GET', '/api/v1/apikey');
+		return data.apiKeys;
 	}
 
- 	export async function getPreauthKeys(userID: string): Promise<PreAuthKey[]> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+	export async function getPreauthKeys(userID: string): Promise<PreAuthKey[]> {
+		const data = await apiFetch<{ preAuthKeys: PreAuthKey[] }>('GET', '/api/v1/preauthkey');
+		let headscalePreAuthKey = data.preAuthKeys ?? [];
+		if (userID) {
+			headscalePreAuthKey = headscalePreAuthKey.filter((k) => k.user?.id === userID);
+		}
+		return headscalePreAuthKey;
+	}
 
- 		let endpointURL = '/api/v1/preauthkey';
-
- 		let headscalePreAuthKey = [new PreAuthKey()];
- 		let headscalePreAuthKeyResponse: Response = new Response();
-
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'GET',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			}
- 		})
- 			.then((response) => {
- 				if (response.ok) {
- 					headscalePreAuthKeyResponse = response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
-
- 		await headscalePreAuthKeyResponse.json().then((data) => {
- 			headscalePreAuthKey = data.preAuthKeys;
- 			if (userID) {
-  				headscalePreAuthKey = headscalePreAuthKey.filter((k) => k.user?.id === userID);
- 			}
- 		});
- 		return headscalePreAuthKey;
- 	}
-
-	export async function newPreAuthKey(userID: string, expiry: string, reusable: boolean, ephemeral: boolean, aclTags: string[]): Promise<any> {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-		// endpoint url for editing users
-		let endpointURL = '/api/v1/preauthkey';
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				user: userID,
-				expiration: expiry,
-				reusable: reusable,
-				ephemeral: ephemeral,
-				aclTags: aclTags
-			})
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+	export async function newPreAuthKey(userID: string, expiry: string, reusable: boolean, ephemeral: boolean, aclTags: string[]): Promise<string> {
+		const data = await apiFetch<{ preAuthKey: { key: string } }>('POST', '/api/v1/preauthkey', {
+			user: userID,
+			expiration: expiry,
+			reusable: reusable,
+			ephemeral: ephemeral,
+			aclTags: aclTags
+		});
+		return data.preAuthKey?.key ?? '';
 	}
 
 	export async function expirePreAuthKey(preAuthKeyID: string): Promise<any> {
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for removing devices
-		let endpointURL = '/api/v1/preauthkey/expire';
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				id: preAuthKeyID
-			})
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('POST', '/api/v1/preauthkey/expire', {
+			id: preAuthKeyID
+		});
 	}
 
 	export async function newDevice(key: string, userId: string): Promise<any> {
-
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = `/api/v1/node/register`;
-
-		let params = new URLSearchParams({ user: userId, key });
-		await fetch(headscaleURL + endpointURL + '?' + params, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		const params = new URLSearchParams({ user: userId, key });
+		return apiFetch('POST', `/api/v1/node/register?` + params);
 	}
 
 	export async function moveDevice(deviceID: string, userID: string): Promise<any> {
-
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = `/api/v1/node/${deviceID}/user`;
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				user: userID
-			})
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw parseApiError(text);
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('POST', `/api/v1/node/${deviceID}/user`, {
+			user: userID
+		});
 	}
 
 	export async function renameDevice(deviceID: string, name: string): Promise<any> {
-
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for editing users
-		let endpointURL = `/api/v1/node/${deviceID}/rename/${name}`;
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('POST', `/api/v1/node/${deviceID}/rename/${encodeURIComponent(name)}`);
 	}
 
 	export async function removeDevice(deviceID: string): Promise<any> {
-		
-		// variables in local storage
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		// endpoint url for removing devices
-		let endpointURL = `/api/v1/node/${deviceID}`;
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'DELETE',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('DELETE', `/api/v1/node/${deviceID}`);
 	}
 
 	export async function expireDevice(deviceID: string, disableExpiry: boolean): Promise<any> {
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		let endpointURL = `/api/v1/node/${deviceID}/expire`;
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			},
-			body: JSON.stringify({
-				disableExpiry: disableExpiry
-			})
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('POST', `/api/v1/node/${deviceID}/expire`, {
+			disableExpiry: disableExpiry
+		});
 	}
 
 	export async function deleteAPIKey(prefix: string): Promise<any> {
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
-		let endpointURL = `/api/v1/apikey/${prefix}`;
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'DELETE',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+		return apiFetch('DELETE', `/api/v1/apikey/${prefix}`);
 	}
 
- 	export async function deletePreAuthKey(id: string): Promise<any> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
- 		let endpointURL = '/api/v1/preauthkey';
-
-		await fetch(headscaleURL + endpointURL + '?id=' + id, {
-			method: 'DELETE',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
+	export async function deletePreAuthKey(id: string): Promise<any> {
+		return apiFetch('DELETE', '/api/v1/preauthkey?id=' + encodeURIComponent(id));
 	}
 
 	export async function getPolicy(): Promise<string> {
-		let headscaleURL = localStorage.getItem('headscaleURL') || '';
-		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+		const data = await apiFetch<{ policy: string }>('GET', '/api/v1/policy');
+		return data.policy;
+	}
 
-		let endpointURL = '/api/v1/policy';
-		let policyResponse = new Response();
-		let policy = '';
-
-		await fetch(headscaleURL + endpointURL, {
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-				Authorization: `Bearer ${headscaleAPIKey}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					policyResponse = response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
-
-		await policyResponse.json().then((data) => {
-			policy = data.policy;
+	export async function updatePolicy(policy: string): Promise<string> {
+		const data = await apiFetch<{ policy: string }>('PUT', '/api/v1/policy', {
+			policy: policy
 		});
-		return policy;
+		return data.policy;
 	}
 
- 	export async function updatePolicy(policy: string): Promise<string> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
- 		let endpointURL = '/api/v1/policy';
- 		let policyResponse = new Response();
- 		let updatedPolicy = '';
-
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'PUT',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			},
- 			body: JSON.stringify({
- 				policy: policy
- 			})
- 		})
- 			.then((response) => {
- 				if (response.ok) {
- 					policyResponse = response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
-
- 		await policyResponse.json().then((data) => {
- 			updatedPolicy = data.policy;
- 		});
- 		return updatedPolicy;
- 	}
-
- 	export async function checkPolicy(policy: string): Promise<any> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
- 		let endpointURL = '/api/v1/policy/check';
-
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'POST',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			},
- 			body: JSON.stringify({
- 				policy: policy
- 			})
- 		})
- 			.then((response) => {
- 				if (response.ok) {
- 					return response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
- 	}
-
- 	export async function getDevice(deviceID: string): Promise<Device> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
- 		let endpointURL = `/api/v1/node/${deviceID}`;
- 		let deviceResponse: Response = new Response();
-
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'GET',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			}
- 		})
-		.then((response) => {
-				if (response.ok) {
-					deviceResponse = response;
-				} else {
-					return response.text().then((text) => {
-						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-					});
-				}
-			})
-			.catch((error) => {
-				throw error;
-			});
-
-		return (await deviceResponse.json()).node;
+	export async function checkPolicy(policy: string): Promise<any> {
+		return apiFetch('POST', '/api/v1/policy/check', {
+			policy: policy
+		});
 	}
 
- 	export async function approveRoutes(deviceID: string, routes: string[]): Promise<any> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+	export async function getDevice(deviceID: string): Promise<Device> {
+		const data = await apiFetch<{ node: Device }>('GET', `/api/v1/node/${deviceID}`);
+		return data.node;
+	}
 
- 		let endpointURL = `/api/v1/node/${deviceID}/approve_routes`;
+	export async function approveRoutes(deviceID: string, routes: string[]): Promise<any> {
+		return apiFetch('POST', `/api/v1/node/${deviceID}/approve_routes`, {
+			routes: routes
+		});
+	}
 
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'POST',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			},
- 			body: JSON.stringify({
- 				routes: routes
- 			})
- 		})
- 			.then((response) => {
- 				if (response.ok) {
- 					return response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
- 	}
+	export async function getHealth(): Promise<any> {
+		return apiFetch('GET', '/api/v1/health');
+	}
 
- 	export async function getHealth(): Promise<any> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
+	export async function registerAuth(data: { user: string; authId?: string }): Promise<any> {
+		return apiFetch('POST', '/api/v1/auth/register', data);
+	}
 
- 		let endpointURL = '/api/v1/health';
+	export async function approveAuth(authID: string): Promise<any> {
+		return apiFetch('POST', '/api/v1/auth/approve', {
+			authId: authID
+		});
+	}
 
- 		let healthResponse: Response = new Response();
+	export async function rejectAuth(authID: string): Promise<any> {
+		return apiFetch('POST', '/api/v1/auth/reject', {
+			authId: authID
+		});
+	}
 
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'GET',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			}
- 		})
- 			.then((response) => {
- 				if (response.ok) {
- 					healthResponse = response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
-
- 		return await healthResponse.json();
- 	}
-
- 	export async function registerAuth(data: { user: string; authId?: string }): Promise<any> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
- 		let endpointURL = '/api/v1/auth/register';
-
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'POST',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			},
- 			body: JSON.stringify(data)
- 		})
- 			.then((response) => {
- 				if (response.ok) {
- 					return response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
- 	}
-
- 	export async function approveAuth(authID: string): Promise<any> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
- 		let endpointURL = '/api/v1/auth/approve';
-
-  		await fetch(headscaleURL + endpointURL, {
-  			method: 'POST',
-  			headers: {
-  				Accept: 'application/json',
-  				Authorization: `Bearer ${headscaleAPIKey}`
-  			},
-  			body: JSON.stringify({
-  				authId: authID
-  			})
-  		})
-  			.then((response) => {
-  				if (response.ok) {
-  					return response;
-  				} else {
-  					return response.text().then((text) => {
-  						throw JSON.parse(text).detail ?? JSON.parse(text).title;
-  					});
-  				}
-  			})
-  			.catch((error) => {
-  				throw error;
-  			});
-  	}
-
- 	export async function rejectAuth(authID: string): Promise<any> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
- 		let endpointURL = '/api/v1/auth/reject';
-
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'POST',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			},
- 			body: JSON.stringify({
- 				authId: authID
- 			})
- 		})
- 			.then((response) => {
- 				if (response.ok) {
- 					return response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
- 	}
-
- 	export async function getPendingAuthRequests(): Promise<PendingAuthRequest[]> {
- 		let headscaleURL = localStorage.getItem('headscaleURL') || '';
- 		let headscaleAPIKey = localStorage.getItem('headscaleAPIKey') || '';
-
- 		let endpointURL = '/api/v1/auth/pending';
- 		let pendingResponse: Response = new Response();
-
- 		await fetch(headscaleURL + endpointURL, {
- 			method: 'GET',
- 			headers: {
- 				Accept: 'application/json',
- 				Authorization: `Bearer ${headscaleAPIKey}`
- 			}
- 		})
- 			.then((response) => {
- 				if (response.ok) {
- 					pendingResponse = response;
- 				} else {
- 					return response.text().then((text) => {
- 						throw JSON.parse(text).detail ?? JSON.parse(text).title;
- 					});
- 				}
- 			})
- 			.catch((error) => {
- 				throw error;
- 			});
-
- 		return (await pendingResponse.json()).authRequests;
- 	}
+	export async function getPendingAuthRequests(): Promise<PendingAuthRequest[]> {
+		const data = await apiFetch<{ authRequests: PendingAuthRequest[] }>('GET', '/api/v1/auth/pending');
+		return data.authRequests ?? [];
+	}
 </script>
