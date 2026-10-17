@@ -6,6 +6,7 @@
 	import MoveDevice from './DeviceCard/MoveDevice.svelte';
 	import RemoveDevice from './DeviceCard/RemoveDevice.svelte';
 	import RenameDevice from './DeviceCard/RenameDevice.svelte';
+	import SetIPDevice from './DeviceCard/SetIPDevice.svelte';
 	import ExpireDevice from './DeviceCard/ExpireDevice.svelte';
 
 	export let device = new Device();
@@ -140,6 +141,7 @@
 										<li>{address}</li>
 									{/each}
 								</ul>
+								<SetIPDevice {device} />
 							</td>
 						</tr>
 						<tr>

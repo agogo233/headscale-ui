@@ -151,6 +151,12 @@
 		return apiFetch('POST', `/api/v1/node/${deviceID}/rename/${encodeURIComponent(name)}`);
 	}
 
+	export async function setDeviceIP(deviceID: string, ipv4: string): Promise<any> {
+		return apiFetch('POST', `/api/v1/node/${deviceID}/ip`, {
+			ipv4: ipv4
+		});
+	}
+
 	export async function removeDevice(deviceID: string): Promise<any> {
 		return apiFetch('DELETE', `/api/v1/node/${deviceID}`);
 	}
