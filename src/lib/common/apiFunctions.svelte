@@ -3,6 +3,7 @@
 	import { deviceStore, userStore } from '$lib/common/stores.js';
 	import { sortDevices, sortUsers } from '$lib/common/sorting.svelte';
 	import { filterDevices, filterUsers } from './searching.svelte';
+	import { translate } from '$lib/i18n';
 
 	// parseApiError extracts a human-readable message from the backend error
 	// body. Huma validation errors (415/422) carry a generic detail
@@ -16,9 +17,9 @@
 			if (detail === 'validation failed') {
 				detail = parsed?.errors?.[0]?.message || detail;
 			}
-			return detail || text || 'Request failed';
+			return detail || text || translate('common.requestFailed');
 		} catch {
-			return text || 'Request failed';
+			return text || translate('common.requestFailed');
 		}
 	}
 
@@ -53,7 +54,7 @@
 		try {
 			return (await response.json()) as T;
 		} catch {
-			throw 'Received an unexpected response from the server';
+			throw translate('common.unexpectedResponse');
 		}
 	}
 

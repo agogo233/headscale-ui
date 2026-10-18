@@ -3,9 +3,10 @@
 	import { APIKey } from '$lib/common/classes';
 	import { alertStore, APIKeyStore } from '$lib/common/stores';
 	import { onMount } from 'svelte';
+	import { translate } from '$lib/i18n';
 	let keyList = [new APIKey()];
-  let timeLeftWarning = false;
-  let timeLeftTip = '';
+   let timeLeftWarning = false;
+   let timeLeftTip = '';
 
 	function getAPIKeysAction(): void {
 		getAPIKeys()
@@ -39,10 +40,10 @@
 		// gets time difference in seconds
 		let timeDifferenceDays = Math.round((date.getTime() - currentTime.getTime()) / 1000 / 60 / 60 / 24);
 		if(timeDifferenceDays < 30) {
-      $alertStore = `${timeDifferenceDays} days left before API Key expiry, consider rolling your key`
+      $alertStore = translate('settings.keyExpiryWarning', { days: timeDifferenceDays })
       timeLeftWarning = true;
     }
-    timeLeftTip = `${timeDifferenceDays} days left before expiry`;
+    timeLeftTip = translate('settings.keyExpiryTip', { days: timeDifferenceDays });
 	}
 
 	onMount(() => {

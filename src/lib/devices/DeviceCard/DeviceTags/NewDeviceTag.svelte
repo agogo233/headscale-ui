@@ -3,6 +3,7 @@
 	import { Device } from '$lib/common/classes';
 	import { fade } from 'svelte/transition';
 	import { alertStore } from '$lib/common/stores.js';
+	import { t, translate } from '$lib/i18n';
 
 	let editingTag = false;
 	let newTag = '';
@@ -11,7 +12,7 @@
 	function updateTagsAction() {
 		const tagValue = newTag.trim().toLowerCase().replace(/^tag:/, '');
 		if (!tagValue || tagValue.includes(' ')) {
-			$alertStore = 'Tag must not be empty or contain spaces';
+			$alertStore = translate('common.tagEmptyOrSpaces');
 			return;
 		}
 
@@ -42,7 +43,7 @@
 	class="btn btn-xs border-dotted border-2 btn-primary opacity-60 normal-case"
 >
 	{#if !editingTag}
-		<span>+ tag</span>
+		<span>{$t('common.addTag')}</span>
 	{:else}
 		<!-- svelte-ignore a11y-autofocus -->
 		<form on:submit|preventDefault={updateTagsAction}>

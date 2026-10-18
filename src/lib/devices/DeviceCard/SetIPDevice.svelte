@@ -3,6 +3,7 @@
 	import { getDevices, setDeviceIP } from '$lib/common/apiFunctions.svelte';
 	import { alertStore, deviceStore } from '$lib/common/stores.js';
 	import { Device } from '$lib/common/classes';
+	import { t, translate } from '$lib/i18n';
 
 	let ipForm: HTMLFormElement;
 	let editIP = false;
@@ -45,13 +46,11 @@
 		}
 
 		const other = occupant();
-		if (
-			other &&
-			!window.confirm(
-				`The address is currently assigned to ${other.givenName || other.name || `device ${other.id}`}. Saving will swap the addresses of both devices and both will need to reconnect. Continue?`
-			)
-		) {
-			return;
+		if (other) {
+			const deviceName = other.givenName || other.name || `${translate('common.device')} ${other.id}`;
+			if (!window.confirm(translate('devices.ipConfirm', { device: deviceName }))) {
+				return;
+			}
 		}
 
 		setDeviceIP(device.id, newIP.trim())
@@ -83,7 +82,7 @@
 			class="card-input"
 			required
 			pattern={IPv4_PATTERN}
-			placeholder="IPv4 address"
+			placeholder={$t('devices.ipv4Placeholder')}
 		/>
 		<!-- edit accept symbol -->
 		<button in:fade|global on:click|stopPropagation class=""
@@ -94,9 +93,9 @@
 		<!-- edit cancel symbol -->
 		<button type="button" in:fade|global on:click|stopPropagation={() => (editIP = false)}
 			><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-				<path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+				<path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
 			</svg></button
 		>
-		<span class="text-xs opacity-60">the device may need to reconnect</span>
+		<span class="text-xs opacity-60">{$t('devices.mayNeedReconnect')}</span>
 	</form>
 {/if}

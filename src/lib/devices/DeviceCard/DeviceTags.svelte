@@ -3,16 +3,17 @@
 	import { Device } from '$lib/common/classes';
 	import { updateTags, getDevices } from '$lib/common/apiFunctions.svelte';
 	import { alertStore } from '$lib/common/stores.js';
+	import { translate } from '$lib/i18n';
 	export let device = new Device();
 
 	function updateTagsAction(tag: String) {
 		let tagList = device.tags;
 		// remove tag we're trying to remove
 		tagList = tagList.filter(element => element !== tag); 
-
+		
 		// a tagged node must keep at least one tag
 		if (tagList.length === 0) {
-			$alertStore = 'Add another tag first - a tagged node cannot have zero tags';
+			$alertStore = translate('common.addAnotherTagFirst');
 			return;
 		}
 

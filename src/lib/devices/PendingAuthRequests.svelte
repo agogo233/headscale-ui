@@ -4,6 +4,7 @@
 	import { getPendingAuthRequests, approveAuth, rejectAuth, getDevices } from '$lib/common/apiFunctions.svelte';
 	import { PendingAuthRequest } from '$lib/common/classes';
 	import { alertStore } from '$lib/common/stores.js';
+	import { t } from '$lib/i18n';
 
 	let pendingRequests: PendingAuthRequest[] = [];
 	let loading = true;
@@ -80,28 +81,28 @@
 
 <div in:fade|global class="mb-4">
 	<h2 class="text-xl font-bold text-primary mb-2">
-		Pending Login Requests {pendingRequests.length > 0 ? `(${pendingRequests.length})` : ''}
+		{$t('devices.pendingRequests')} {pendingRequests.length > 0 ? $t('devices.pendingCount', { count: pendingRequests.length }) : ''}
 	</h2>
 	{#if loading}
-		<p class="text-sm text-secondary">Loading pending requests...</p>
+		<p class="text-sm text-secondary">{$t('devices.loadingRequests')}</p>
 	{:else if loadFailed}
-		<p class="text-sm text-secondary">Could not load pending login requests.</p>
+		<p class="text-sm text-secondary">{$t('devices.loadFailed')}</p>
 	{:else if pendingRequests.length === 0}
-		<p class="text-sm text-secondary">No pending login requests.</p>
+		<p class="text-sm text-secondary">{$t('devices.noRequests')}</p>
 	{:else}
 		<div class="flex flex-col gap-2">
 			{#each pendingRequests as req (req.authId)}
 				<div class="card-primary bg-base-200 p-3">
 					<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-						<span class="font-bold">{req.hostname || 'unknown host'}</span>
+						<span class="font-bold">{req.hostname || $t('devices.unknownHost')}</span>
 						{#if req.os}
 							<span class="text-secondary">{req.os}{req.osVersion ? ` ${req.osVersion}` : ''}</span>
 						{/if}
 						{#if req.user}
-							<span class="text-secondary">user: {req.user}</span>
+							<span class="text-secondary">{$t('devices.authUser', { name: req.user })}</span>
 						{/if}
 						{#if req.routableIPs.length > 0}
-							<span class="text-secondary">routes: {req.routableIPs.join(', ')}</span>
+							<span class="text-secondary">{$t('devices.authRoutes', { routes: req.routableIPs.join(', ') })}</span>
 						{/if}
 						{#if req.createdAt}
 							<span class="text-secondary">{formatTime(req.createdAt)}</span>
@@ -110,16 +111,16 @@
 					<div class="flex gap-2 mt-2">
 						<button type="button" class="btn btn-xs btn-primary" class:disabled={busyId != ''} on:click={() => approveRequest(req.authId)}>
 							{#if busyId === req.authId}
-								Working...
+								{$t('common.working')}
 							{:else}
-								Approve
+								{$t('devices.approve')}
 							{/if}
 						</button>
 						<button type="button" class="btn btn-xs btn-error" class:disabled={busyId != ''} on:click={() => rejectRequest(req.authId)}>
 							{#if busyId === req.authId}
-								Working...
+								{$t('common.working')}
 							{:else}
-								Reject
+								{$t('devices.reject')}
 							{/if}
 						</button>
 					</div>

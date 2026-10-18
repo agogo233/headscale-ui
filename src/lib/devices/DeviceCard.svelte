@@ -8,6 +8,7 @@
 	import RenameDevice from './DeviceCard/RenameDevice.svelte';
 	import SetIPDevice from './DeviceCard/SetIPDevice.svelte';
 	import ExpireDevice from './DeviceCard/ExpireDevice.svelte';
+	import { t, translate } from '$lib/i18n';
 
 	export let device = new Device();
 	let cardExpanded = false;
@@ -29,16 +30,16 @@
 	// maps the backend's register method enum to display text
 	function registerMethodLabel(method: string) {
 		if (!method || method === 'REGISTER_METHOD_UNSPECIFIED') {
-			return 'Unknown';
+			return translate('devices.regUnknown');
 		}
 		if (method === 'REGISTER_METHOD_AUTH_KEY') {
-			return 'Auth Key';
+			return translate('devices.regAuthKey');
 		}
 		if (method === 'REGISTER_METHOD_OIDC') {
-			return 'OIDC';
+			return translate('devices.regOidc');
 		}
 		if (method === 'REGISTER_METHOD_CLI') {
-			return 'CLI';
+			return translate('devices.regCli');
 		}
 		return method;
 	}
@@ -64,30 +65,30 @@
 		let timeUnit = '';
 
 		if (timeDifference < 60) {
-			timeUnit = 'seconds';
+			timeUnit = translate('common.seconds');
 		} else if (timeDifference < 3600) {
 			timeDifference = Math.floor(timeDifference / 60);
 			if (timeDifference == 1) {
-				timeUnit = 'minute';
+				timeUnit = translate('common.minute');
 			} else {
-				timeUnit = 'minutes';
+				timeUnit = translate('common.minutes');
 			}
 		} else if (timeDifference < 86400) {
 			timeDifference = Math.floor(timeDifference / (60 * 60));
 			if (timeDifference == 1) {
-				timeUnit = 'hour';
+				timeUnit = translate('common.hour');
 			} else {
-				timeUnit = 'hours';
+				timeUnit = translate('common.hours');
 			}
 		} else {
 			timeDifference = Math.floor(timeDifference / (60 * 60 * 24));
 			if (timeDifference == 1) {
-				timeUnit = 'day';
+				timeUnit = translate('common.day');
 			} else {
-				timeUnit = 'days';
+				timeUnit = translate('common.days');
 			}
 		}
-		return `Last seen ${timeDifference} ${timeUnit} ago`;
+		return translate('devices.lastSeenAgo', { n: timeDifference, unit: timeUnit });
 	}
 </script>
 
@@ -97,9 +98,9 @@
 		<span class="min-w-64 w-1/2 font-bold">
 			{#if cardEditing == false}
 				{#if device.online}
-					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip=online /> {device.id}: {device.givenName}
+					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip={$t('common.online')} /> {device.id}: {device.givenName}
 				{:else}
-					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip={device.lastSeen ? timeSince(new Date(device.lastSeen)) : 'Never seen'} /> {device.id}: {device.givenName}
+					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip={device.lastSeen ? timeSince(new Date(device.lastSeen)) : $t('common.neverSeen')} /> {device.id}: {device.givenName}
 				{/if}
 			{/if}
 			<RenameDevice bind:cardEditing {device} />
@@ -130,11 +131,11 @@
 				<table class="table table-compact w-full">
 					<tbody>
 						<tr>
-							<th>Device Last Seen</th>
-							<td>{device.lastSeen ? new Date(device.lastSeen) : 'Never'}</td>
+							<th>{$t('devices.lastSeen')}</th>
+							<td>{device.lastSeen ? new Date(device.lastSeen) : $t('common.never')}</td>
 						</tr>
 						<tr>
-							<th>IP Addresses</th>
+							<th>{$t('devices.ipAddresses')}</th>
 							<td>
 								<ul class="list-disc list-inside">
 									{#each device.ipAddresses as address}
@@ -145,19 +146,19 @@
 							</td>
 						</tr>
 						<tr>
-							<th>Assigned User</th>
+							<th>{$t('devices.assignedUser')}</th>
 							<MoveDevice {device} />
 						</tr>
 						<tr>
-							<th>Device Name</th>
+							<th>{$t('common.device')}</th>
 							<td>{device.name}</td>
 						</tr>
 						<tr>
-							<th>Expiry</th>
-							<td>{device.expiry ? new Date(device.expiry).toLocaleString() : 'Never'}</td>
+							<th>{$t('devices.expiry')}</th>
+							<td>{device.expiry ? new Date(device.expiry).toLocaleString() : $t('common.never')}</td>
 						</tr>
 						<tr>
-							<th>Register Method</th>
+							<th>{$t('devices.registerMethod')}</th>
 							<td>{registerMethodLabel(device.registerMethod)}</td>
 						</tr>
 						<tr>

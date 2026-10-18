@@ -9,6 +9,9 @@ A web frontend for the [headscale](https://github.com/juanfont/headscale) Tailsc
 
 Headscale-UI is currently released as a static site: just take the release and host with your favorite web server. By default, Headscale-UI expects to be served from the `/webXui` path to avoid overlap with headscale on the same domain. This base path can be customized using the `BASE_PATH` environment variable. Note that due to CORS (see https://github.com/juanfont/headscale/issues/623), headscale UI *must* be served on the same subdomain, or CORS headers injected via reverse proxy.
 
+## Languages
+Headscale-UI supports English and Chinese (Simplified). The language is automatically detected from your browser settings and can be manually switched in the Settings page. Your language preference is saved in localStorage.
+
 ### Docker Installation
 If you are using docker, you can install `headscale` alongside `headscale-ui`, like so:
 

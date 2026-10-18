@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getUsers } from '$lib/common/apiFunctions.svelte';
 	import { sortDirectionStore, userSortStore } from '$lib/common/stores.js';
+	import { t } from '$lib/i18n';
 
 	function sortAction() {
 		if ($sortDirectionStore == 'ascending') {
@@ -34,8 +35,8 @@
 	</button>
 
 	<span class="btn-group">
-		<button class:btn-active="{$userSortStore == 'id'}" on:click="{() => {$userSortStore = 'id'; getUsers()}}" class="btn btn-xs">ID</button>
-		<button class:btn-active="{$userSortStore == 'name'}" on:click="{() => {$userSortStore = 'name'; getUsers()}}" class="btn btn-xs capitalize">User Name</button>
-		<button class:btn-active="{$userSortStore == 'createdAt'}" on:click="{() => {$userSortStore = 'createdAt'; getUsers()}}" class="btn btn-xs capitalize">Creation Date</button>
+		<button class:btn-active="{$userSortStore == 'id'}" on:click="{() => {$userSortStore = 'id'; getUsers()}}" class="btn btn-xs">{$t('common.id')}</button>
+		<button class:btn-active="{$userSortStore == 'name'}" on:click="{() => {$userSortStore = 'name'; getUsers()}}" class="btn btn-xs capitalize">{$t('users.sortUserName')}</button>
+		<button class:btn-active="{$userSortStore == 'createdAt'}" on:click="{() => {$userSortStore = 'createdAt'; getUsers()}}" class="btn btn-xs capitalize">{$t('users.sortCreationDate')}</button>
 	</span>
 </span>

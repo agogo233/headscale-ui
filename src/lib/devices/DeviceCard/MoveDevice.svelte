@@ -3,6 +3,7 @@
 	import { Device } from '$lib/common/classes';
 	import { userStore, alertStore } from '$lib/common/stores';
 	import { moveDevice, getDevices } from '$lib/common/apiFunctions.svelte';
+	import { t } from '$lib/i18n';
 
 	export let device = new Device();
 	let deviceMoving = false;
@@ -24,7 +25,7 @@
 
 <td>
 	{#if isTagged}
-		<span class="text-base-content/60">Tagged node — managed by tag, cannot be assigned a user</span>
+		<span class="text-base-content/60">{$t('devices.taggedNodeInfo')}</span>
 	{:else if !deviceMoving}
 		{device.user?.name}
 		<!-- edit symbol -->

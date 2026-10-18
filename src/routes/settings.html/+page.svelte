@@ -6,9 +6,11 @@
 	import ServerSettings from '$lib/settings/ServerSettings.svelte';
 	import ThemeSettings from '$lib/settings/ThemeSettings.svelte';
 	import APIKeyManager from '$lib/settings/APIKeyManager.svelte';
+	import LanguageSettings from '$lib/settings/LanguageSettings.svelte';
 	import { getVersion } from '$lib/common/apiFunctions.svelte';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
+	import { t } from '$lib/i18n';
 
 	// Set to true once component is initialized
 	let componentLoaded = false;
@@ -34,14 +36,16 @@
 
 <!-- html -->
 <div hidden={!componentLoaded} in:fade|global class="px-4 py-4 w-4/5 max-w-screen-lg">
-		<ServerSettings />
-		<div class="p-4" />
-		<APIKeyManager />
-		<ThemeSettings />
-		<div class="p-4" />
-		<h1 class="text-2xl bold text-primary mb-4">Version</h1>
-		UI: <b>insert-version</b><br />
-		Headscale server: <b>{serverVersion || 'unknown'}</b>
+	<ServerSettings />
+	<div class="p-4" />
+	<APIKeyManager />
+	<ThemeSettings />
+	<div class="p-4" />
+	<LanguageSettings />
+	<div class="p-4" />
+	<h1 class="text-2xl bold text-primary mb-4">{$t('settings.version')}</h1>
+	{$t('settings.uiVersion')} <b>insert-version</b><br />
+	{$t('settings.serverVersion')} <b>{serverVersion || $t('common.unknown')}</b>
 		<div class ="p-4"></div>
 		<DevSettings></DevSettings>
 	</div>

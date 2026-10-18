@@ -2,6 +2,7 @@
 	import { fade } from 'svelte/transition';
 	import { alertStore } from '$lib/common/stores.js';
 	import { getUsers, newUser } from '$lib/common/apiFunctions.svelte';
+	import { t, translate } from '$lib/i18n';
 
 	// name for user creation
 	let newUserName = '';
@@ -23,7 +24,7 @@
 					$alertStore = error;
 				});
 		} else {
-			$alertStore = 'Use lower case letters, periods, or dashes only';
+			$alertStore = translate('common.invalidName');
 		}
 	}
 </script>
@@ -33,7 +34,7 @@
 	<div in:fade|global out:fade|global={{ duration: newUserCardVisible ? 0 : 500 }} class="card-pending">
 		<form on:submit|preventDefault={newUserAction} class="relative" bind:this={newUserForm}>
 			<!-- Input has to be lower case, but we will force lower case on submit -->
-			<input bind:value={newUserName} class="card-input lowercase" required pattern="[a-zA-Z0-9\-\.]+" placeholder="name" />
+			<input bind:value={newUserName} class="card-input lowercase" required pattern="[a-zA-Z0-9\-\.]+" placeholder={$t('common.name')} />
 		</form>
 		<div>
 			<button on:click={() => newUserAction()}

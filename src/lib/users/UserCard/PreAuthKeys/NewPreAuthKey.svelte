@@ -2,7 +2,8 @@
 	import { newPreAuthKey, getPreauthKeys } from '$lib/common/apiFunctions.svelte';
 	import { PreAuthKey, User } from '$lib/common/classes';
 	import { fade } from 'svelte/transition';
-  import { alertStore } from '$lib/common/stores';
+  	import { alertStore } from '$lib/common/stores';
+	import { t, translate } from '$lib/i18n';
 	let currentTime = new Date();
 	let minDate = new Date(currentTime.setMinutes(currentTime.getMinutes() + 60 - currentTime.getTimezoneOffset())).toISOString().slice(0, 16);
 
@@ -22,7 +23,7 @@
 
 	function copyKey() {
 		if (!navigator.clipboard) {
-			$alertStore = 'Copy is not available - select the key and copy it manually';
+			$alertStore = translate('common.copyUnavailable');
 			return;
 		}
 		navigator.clipboard
@@ -34,7 +35,7 @@
 				}, 2000);
 			})
 			.catch(() => {
-				$alertStore = 'Copy failed - select the key and copy it manually';
+				$alertStore = translate('common.copyFailed');
 			});
 	}
 
@@ -47,11 +48,11 @@
 	function addTag() {
 		let normalised = `tag:${newTag.trim().toLowerCase().replace(/^tag:/, '')}`;
 		if (normalised == 'tag:') {
-			$alertStore = 'Tag must not be empty';
+			$alertStore = translate('common.tagEmpty');
 			return;
 		}
 		if (normalised.includes(' ')) {
-			$alertStore = 'Tags must not contain spaces';
+			$alertStore = translate('common.tagSpaces');
 			return;
 		}
 		// remove duplicates
@@ -98,35 +99,35 @@
 <div in:fade|global class="card-pending">
 	{#if createdKey}
 		<div class="p-3">
-			<p class="text-sm text-warning mb-1">Copy this key now — it will not be shown again.</p>
+			<p class="text-sm text-warning mb-1">{$t('users.copyKeyNow')}</p>
 			<div class="flex gap-1 items-center">
 				<code class="block border rounded px-2 py-1 text-xs overflow-auto max-w-full">{createdKey}</code>
-				<button type="button" on:click={copyKey} class="btn btn-xs btn-primary shrink-0">{copied ? 'Copied' : 'Copy'}</button>
+				<button type="button" on:click={copyKey} class="btn btn-xs btn-primary shrink-0">{copied ? $t('common.copied') : $t('common.copy')}</button>
 			</div>
-			<button class="btn btn-sm m-3 btn-secondary capitalize" type="button" on:click={closePanel}>Done</button>
+			<button class="btn btn-sm m-3 btn-secondary capitalize" type="button" on:click={closePanel}>{$t('common.done')}</button>
 		</div>
 	{:else}
 		<form on:submit|preventDefault={NewPreAuthKeyAction}>
 		<table class="table table-compact w-full">
 			<tbody>
 				<tr>
-					<th>Expiry:</th>
+					<th>{$t('users.expiry')}</th>
 					<td><input bind:value={expiry} class="border rounded px-2" type="datetime-local" required min={minDate} /><br /></td>
 				</tr>
 				<tr>
-					<th>Reusable:</th>
+					<th>{$t('users.reusable')}</th>
 					<td>
 						<input type="checkbox" bind:checked={reusable} class="checkbox checkbox-sm text-base-content" />
 					</td>
 				</tr>
 				<tr>
-					<th>Ephemeral:</th>
+					<th>{$t('users.ephemeral')}</th>
 					<td>
 						<input type="checkbox" bind:checked={ephemeral} class="checkbox checkbox-sm text-base-content" />
 					</td>
 				</tr>
 				<tr>
-					<th>Tags:</th>
+					<th>{$t('users.tags')}</th>
 					<td>
 						<div class="flex items-center gap-1">
 							<input
@@ -138,9 +139,9 @@
 									}
 								}}
 								class="border rounded px-2 w-32"
-								placeholder="tag"
+								placeholder={$t('common.tag')}
 							/>
-							<button type="button" on:click={addTag} class="btn btn-xs btn-primary">+ Add</button>
+							<button type="button" on:click={addTag} class="btn btn-xs btn-primary">{$t('common.add')}</button>
 						</div>
 						<div class="flex flex-wrap gap-1 mt-1">
 							{#each tagList as tag}
@@ -159,13 +160,13 @@
 				</tr>
 			</tbody>
 		</table>
-		<button class="btn btn-sm m-3 btn-primary capitalize">Create Preauth Key</button>
+		<button class="btn btn-sm m-3 btn-primary capitalize">{$t('users.createPreauthKey')}</button>
 		<button
 			on:click={() => {
 				newPreAuthKeyShow = false;
 			}}
 			type="button"
-			class="btn btn-sm m-1 btn-secondary capitalize">Cancel</button
+			class="btn btn-sm m-1 btn-secondary capitalize">{$t('common.cancel')}</button
 		>
 	</form>
 	{/if}

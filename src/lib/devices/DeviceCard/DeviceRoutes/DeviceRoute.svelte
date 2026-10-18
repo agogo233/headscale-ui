@@ -2,6 +2,7 @@
 	import { getDevices, approveRoutes } from '$lib/common/apiFunctions.svelte';
 	import { Device } from '$lib/common/classes';
 	import { alertStore } from '$lib/common/stores';
+	import { t } from '$lib/i18n';
 
 	export let route = '';
 	export let device = new Device();
@@ -46,7 +47,7 @@
 			routeDisabled = false;
 		}}
 		type="button"
-		class="btn btn-xs tooltip capitalize bg-success text-success-content mx-1">active</button
+		class="btn btn-xs tooltip capitalize bg-success text-success-content mx-1">{$t('common.active')}</button
 	>
 {:else}
 	<button
@@ -58,9 +59,9 @@
 		type="button"
 		class="btn btn-xs tooltip capitalize bg-secondary text-secondary-content mx-1"
 		class:disabled={routeDisabled}
-		data-tip="click to enable route">pending</button
+		data-tip={$t('devices.clickToEnable')}>{$t('common.pending')}</button
 	>
 {/if}
 {#if device.subnetRoutes.includes(route)}
-	<button type="button" class="btn btn-xs tooltip capitalize bg-secondary text-secondary-content mx-1">subnet</button>
+	<button type="button" class="btn btn-xs tooltip capitalize bg-secondary text-secondary-content mx-1">{$t('common.subnet')}</button>
 {/if}

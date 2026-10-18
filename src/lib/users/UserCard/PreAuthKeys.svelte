@@ -4,6 +4,7 @@
 	import { alertStore, preAuthHideStore } from '$lib/common/stores';
 	import NewPreAuthKey from './PreAuthKeys/NewPreAuthKey.svelte';
 	import { onMount } from 'svelte';
+	import { t } from '$lib/i18n';
 
 	// The v1 API zero-stamps an unset expiration to 0001-01-01, which the
 	// backend treats as "never expires" (PreAuthKey.IsExpired: unset -> false).
@@ -60,7 +61,7 @@
 
 <tr>
 	<th>
-		<div>Preauth Keys 
+		<div>{$t('users.preauthKeys')} 
 			<button
 				on:keypress on:click={() => {
 					newPreAuthKeyShow = !newPreAuthKeyShow;
@@ -90,7 +91,7 @@
 				on:keypress on:click={() => {
 					$preAuthHideStore = !$preAuthHideStore
 				}}
-				class="font-normal ml-2">Hide Expired/Used Keys</span
+				class="font-normal ml-2">{$t('users.hideExpiredUsed')}</span
 			>
 		</div>
 	</th>
@@ -106,25 +107,25 @@
 							<th>{key.id}</th>
 							<td
 								><code class="border p-1 rounded">{key.key}</code>
-								<div class="tooltip" data-tip={isNeverExpiring(key.expiration) ? 'never expires' : new Date(key.expiration).toLocaleString()}>
+								<div class="tooltip" data-tip={isNeverExpiring(key.expiration) ? $t('common.neverExpires') : new Date(key.expiration).toLocaleString()}>
 									{#if key.id != '' && isNeverExpiring(key.expiration)}
-										<div class="btn btn-xs capitalize bg-info text-info-content mx-1">never</div>
+										<div class="btn btn-xs capitalize bg-info text-info-content mx-1">{$t('common.never')}</div>
 									{:else if new Date(key.expiration).getTime() > new Date().getTime()}
-										<div class="btn btn-xs capitalize bg-success text-success-content mx-1">active</div>
+										<div class="btn btn-xs capitalize bg-success text-success-content mx-1">{$t('common.active')}</div>
 									{:else if key.id != ''}
-										<div class="btn btn-xs capitalize bg-error text-error-content mx-1">expired</div>
+										<div class="btn btn-xs capitalize bg-error text-error-content mx-1">{$t('common.expired')}</div>
 									{/if}
 								</div>
 								{#if !key.used && key.id != ''}
-									<div class="btn btn-xs capitalize bg-primary text-primary-content mx-1">unused</div>
+									<div class="btn btn-xs capitalize bg-primary text-primary-content mx-1">{$t('common.unused')}</div>
 								{:else if key.id != ''}
-									<div class="btn btn-xs capitalize bg-warning text-warning-content mx-1">used</div>
+									<div class="btn btn-xs capitalize bg-warning text-warning-content mx-1">{$t('common.used')}</div>
 								{/if}
 								{#if key.reusable && key.id != ''}
-									<div class="btn btn-xs capitalize bg-secondary text-secondary-content mx-1">reusable</div>
+									<div class="btn btn-xs capitalize bg-secondary text-secondary-content mx-1">{$t('common.reusable')}</div>
 								{/if}
 								{#if key.ephemeral && key.id != ''}
-									<div class="btn btn-xs capitalize bg-accent text-accent-content mx-1">ephemeral</div>
+									<div class="btn btn-xs capitalize bg-accent text-accent-content mx-1">{$t('common.ephemeral')}</div>
 								{/if}
 								{#if key.aclTags && key.aclTags.length > 0}
 									<div class="flex flex-wrap gap-1 mt-1">

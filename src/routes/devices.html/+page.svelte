@@ -11,6 +11,7 @@
 	import SortDevices from '$lib/devices/SortDevices.svelte';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
+	import { t, translate } from '$lib/i18n';
 
 	let newDeviceKey = '';
 
@@ -40,10 +41,10 @@
 		// check health status
 		getHealth()
 			.then((data) => {
-				healthStatus = data.databaseConnectivity ? 'healthy' : 'unknown';
+				healthStatus = data.databaseConnectivity ? translate('common.healthy') : translate('common.unknown');
 			})
 			.catch(() => {
-				healthStatus = 'unreachable';
+				healthStatus = translate('common.unreachable');
 			});
 		// load the page
 		componentLoaded = true;
@@ -54,9 +55,9 @@
 {#if componentLoaded}
 	<div in:fade|global>
 		<div in:fade|global class="px-4 pt-4">
-			<h1 class="text-2xl bold text-primary">Device View</h1>
+			<h1 class="text-2xl bold text-primary">{$t('devices.view')}</h1>
 			{#if healthStatus !== ''}
-				<p class="text-sm text-secondary">Server: {healthStatus}</p>
+				<p class="text-sm text-secondary">{$t('devices.server', { status: healthStatus })}</p>
 			{/if}
 		</div>
 		{#if $apiTestStore === 'succeeded'}
@@ -70,9 +71,9 @@
 						><!-- device creation visibility button -->
 						<div class="p-4">
 							{#if newDeviceCardVisible == false}
-								<button on:click={() => (newDeviceCardVisible = true)} class="btn btn-primary btn-xs capitalize" type="button">+ New Device</button>
+								<button on:click={() => (newDeviceCardVisible = true)} class="btn btn-primary btn-xs capitalize" type="button">{$t('devices.newDevice')}</button>
 							{:else}
-								<button on:click={() => (newDeviceCardVisible = false)} class="btn btn-secondary btn-xs capitalize" type="button">- Hide New Device</button>
+								<button on:click={() => (newDeviceCardVisible = false)} class="btn btn-secondary btn-xs capitalize" type="button">{$t('devices.hideNewDevice')}</button>
 							{/if}
 						</div></td
 					><td><SortDevices /></td><td><SearchDevices /></td></tr
@@ -91,7 +92,7 @@
 		{/if}
 		{#if $apiTestStore === 'failed'}
 			<div in:fade|global class="max-w-lg  mx-auto p-4 border-4 text-sm text-base-content shadow-lg text-center">
-				<p>API test did not succeed.<br />Headscale might be down or API settings may need to be set<br />change server settings in the <a href="{base}/settings.html" class="link link-primary">settings</a> page</p>
+				<p>{$t('common.apiFailedTitle')}<br />{$t('common.apiFailedDetail')}<br />{$t('common.apiFailedHint')}<a href="{base}/settings.html" class="link link-primary">{$t('common.settingsPage')}</a>{$t('common.apiFailedHintEnd')}</p>
 			</div>
 		{/if}
 	</div>

@@ -2,6 +2,7 @@
 	import { expireAPIKey, getAPIKeys, newAPIKey } from '$lib/common/apiFunctions.svelte';
 	import { APIKey } from '$lib/common/classes';
 	import { alertStore, APIKeyStore } from '$lib/common/stores';
+	import { t } from '$lib/i18n';
 	let keyList = [new APIKey()];
 	let currentKey = new APIKey();
   export let apiStatus = '';
@@ -54,5 +55,5 @@
 		getAPIKeysAction();
 	}}
 	class="btn btn-sm btn-secondary capitalize ml-4"
-	type="button" disabled="{apiStatus != 'succeeded'}">Rollover API Key</button
+	type="button" disabled="{apiStatus != 'succeeded'}">{$t('settings.rolloverApiKey')}</button
 >

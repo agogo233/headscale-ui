@@ -5,6 +5,7 @@
 	import PreauthKeys from '$lib/users/UserCard/PreAuthKeys.svelte';
 	import { User } from '$lib/common/classes';
 	import { userStore } from '$lib/common/stores';
+	import { t } from '$lib/i18n';
 
 	// function for refreshing users from parent
 	export let user = new User();
@@ -40,11 +41,11 @@
 				<table class="table table-compact w-full">
 					<tbody>
 						<tr>
-							<th>Email</th>
+							<th>{$t('users.email')}</th>
 							<td>{user.email}</td>
 						</tr>
 						<tr>
-							<th>User Creation Date</th>
+							<th>{$t('users.creationDate')}</th>
 							<td>{new Date(user.createdAt)}</td>
 						</tr>
 						{#key $userStore}

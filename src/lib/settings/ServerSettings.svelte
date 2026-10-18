@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import ApiKeyTimeLeft from './ServerSettings/APIKeyTimeLeft.svelte';
 	import RolloverApi from './ServerSettings/RolloverAPI.svelte';
+	import { t } from '$lib/i18n';
 
 	// Server Settings
 	let apiStatus = 'untested';
@@ -34,12 +35,12 @@
 </script>
 
 <form>
-	<h1 class="text-2xl bold text-primary mb-4">Server Settings</h1>
-	<label class="block text-secondary text-sm font-bold mb-2" for="url"> Headscale URL </label>
+	<h1 class="text-2xl bold text-primary mb-4">{$t('settings.serverSettings')}</h1>
+	<label class="block text-secondary text-sm font-bold mb-2" for="url"> {$t('settings.headscaleUrl')} </label>
 	<input bind:value={$URLStore} class="form-input" type="url" pattern={String.raw`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`} placeholder="https://hs.yourdomain.com.au" />
-	<p class="text-xs text-base-content text-italics mb-8">URL for your headscale server instance</p>
+	<p class="text-xs text-base-content text-italics mb-8">{$t('settings.urlHint')}</p>
 	<label class="block text-secondary text-sm font-bold mb-2" for="password">
-		Headscale API Key
+		{$t('settings.headscaleApiKey')}
 		{#if apiStatus == 'succeeded'}
 			{#key $APIKeyStore}
 				<ApiKeyTimeLeft />
@@ -70,14 +71,14 @@
 		</button>
 		<RolloverApi {apiStatus} />
 	</div>
-	<p class="text-xs text-base-content text-italics mb-8">Generate an API key for your headscale instance and place it here.</p>
+	<p class="text-xs text-base-content text-italics mb-8">{$t('settings.apiKeyHint')}</p>
 	{#if apiStatus != 'succeeded'}
-		<button on:click={() => {TestServerSettings()}} class="btn btn-sm btn-secondary capitalize" type="button">Save API Key</button>
+		<button on:click={() => {TestServerSettings()}} class="btn btn-sm btn-secondary capitalize" type="button">{$t('settings.saveApiKey')}</button>
 	{:else}
-		<button on:click={() => {apiStatus = 'untested'}} class="btn btn-sm btn-primary capitalize" type="button">Edit API Key</button>
+		<button on:click={() => {apiStatus = 'untested'}} class="btn btn-sm btn-primary capitalize" type="button">{$t('settings.editApiKey')}</button>
 	{/if}
-	<button on:click={() => ClearServerSettings()} class="btn btn-sm btn-primary capitalize" type="button">Clear Server Settings</button>
-	<button on:click={() => TestServerSettings()} class="btn btn-sm btn-secondary capitalize" type="button">Test Server Settings</button>
+	<button on:click={() => ClearServerSettings()} class="btn btn-sm btn-primary capitalize" type="button">{$t('settings.clearSettings')}</button>
+	<button on:click={() => TestServerSettings()} class="btn btn-sm btn-secondary capitalize" type="button">{$t('settings.testSettings')}</button>
 	{#if apiStatus === 'succeeded'}
 		<svg in:fly|global={{ x: 10, duration: 600 }} xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline" fill="none" viewBox="0 0 24 24" stroke="green" stroke-width="2">
 			<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

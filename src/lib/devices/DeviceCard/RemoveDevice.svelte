@@ -3,6 +3,7 @@
 	import { getDevices, removeDevice } from '$lib/common/apiFunctions.svelte';
 	import { alertStore } from '$lib/common/stores.js';
 	import { Device } from '$lib/common/classes';
+	import { t } from '$lib/i18n';
 
 	export let device = new Device();
 	let cardDeleting = false;
@@ -29,14 +30,14 @@
 	>
 {:else}
 	<!-- Delete Warning -->
-	<span in:fade|global class="font-bold text-red-400">Deleting {device.name}. Confirm </span>
+	<span in:fade|global class="font-bold text-red-400">{$t('common.deletingConfirm', { name: device.name })}</span>
 	<!-- Delete confirm symbol -->
 	<button in:fade|global on:click|stopPropagation={() => removeDeviceAction()}
 		><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 			<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
 		</svg></button
 	>
-	<span in:fade|global class="font-bold text-red-400">or Cancel </span>
+	<span in:fade|global class="font-bold text-red-400">{$t('common.orCancel')}</span>
 	<!-- Delete cancel symbol -->
 	<button in:fade|global on:click|stopPropagation={() => (cardDeleting = false)} class="mr-4"
 		><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

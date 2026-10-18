@@ -3,10 +3,11 @@
 	import { getDevices, renameDevice } from '$lib/common/apiFunctions.svelte';
 	import { alertStore} from '$lib/common/stores.js';
 	import { Device } from '$lib/common/classes';
+	import { t, translate } from '$lib/i18n';
 
 	let editUserForm: HTMLFormElement;
 	let newDeviceName = '';
-  export let cardEditing = false;
+  	export let cardEditing = false;
 	export let device = new Device();
 
 	function editingDevice() {
@@ -26,7 +27,7 @@
 					$alertStore = error;
 				});
 		} else {
-			$alertStore = 'Use lower case letters, periods, or dashes only';
+			$alertStore = translate('common.invalidName');
 		}
 	}
 </script>
@@ -41,7 +42,7 @@
 {:else}
 	<form bind:this={editUserForm} on:submit|preventDefault={renameDeviceAction}>
 		<!-- Input has to be lower case, but we will force lower case on submit -->
-		<input in:slide|global on:click|stopPropagation bind:value={newDeviceName} class="card-input mb-1 lowercase" required pattern="[a-zA-Z0-9\-\.]+" placeholder="name" />
+		<input in:slide|global on:click|stopPropagation bind:value={newDeviceName} class="card-input mb-1 lowercase" required pattern="[a-zA-Z0-9\-\.]+" placeholder={$t('common.name')} />
     <!-- edit accept symbol -->
 	<button in:fade|global on:click|stopPropagation class=""
   ><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

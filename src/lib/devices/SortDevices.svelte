@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getDevices } from '$lib/common/apiFunctions.svelte';
 	import { deviceSortDirectionStore, deviceSortStore } from '$lib/common/stores.js';
+	import { t } from '$lib/i18n';
 
 	function sortAction() {
 		if ($deviceSortDirectionStore == 'ascending') {
@@ -34,8 +35,8 @@
 	</button>
 
 	<span class="btn-group">
-		<button class:btn-active="{$deviceSortStore == 'id'}" on:click="{() => {$deviceSortStore = 'id'; getDevices()}}" class="btn btn-xs">ID</button>
-		<button class:btn-active="{$deviceSortStore == 'givenName'}" on:click="{() => {$deviceSortStore = 'givenName'; getDevices()}}" class="btn btn-xs capitalize">Device Name</button>
-		<button class:btn-active="{$deviceSortStore == 'lastSeen'}" on:click="{() => {$deviceSortStore = 'lastSeen'; getDevices()}}" class="btn btn-xs capitalize">Last Seen</button>
+		<button class:btn-active="{$deviceSortStore == 'id'}" on:click="{() => {$deviceSortStore = 'id'; getDevices()}}" class="btn btn-xs">{$t('common.id')}</button>
+		<button class:btn-active="{$deviceSortStore == 'givenName'}" on:click="{() => {$deviceSortStore = 'givenName'; getDevices()}}" class="btn btn-xs capitalize">{$t('devices.sortDeviceName')}</button>
+		<button class:btn-active="{$deviceSortStore == 'lastSeen'}" on:click="{() => {$deviceSortStore = 'lastSeen'; getDevices()}}" class="btn btn-xs capitalize">{$t('common.lastSeen')}</button>
 	</span>
 </span>
