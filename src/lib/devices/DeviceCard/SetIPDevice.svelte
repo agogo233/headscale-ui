@@ -12,7 +12,8 @@
 
 	// IPv4_PATTERN limits the input to four dotted octets; the server validates the
 	// address against the configured prefix, reservations and occupants.
-	const IPv4_PATTERN = '^\d{1,3}(\.\d{1,3}){3}$';
+	// String.raw keeps the backslashes intact for the HTML pattern attribute.
+	const IPv4_PATTERN = String.raw`^\d{1,3}(\.\d{1,3}){3}$`;
 
 	// currentIPv4 picks the device's current IPv4 address, if it has one.
 	function currentIPv4() {
