@@ -13,4 +13,4 @@ then
 fi
 
 echo "Starting Caddy"
-/usr/sbin/caddy run --adapter caddyfile --config /data/Caddyfile
+exec /usr/sbin/caddy run --adapter caddyfile --config /data/Caddyfile

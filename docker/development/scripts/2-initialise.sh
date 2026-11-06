@@ -54,7 +54,7 @@ fi
 # run the main process.
 if [ "$USE_CONNECTION_TOKEN" = "false" ]
 then
-    /opt/openvscode-server/bin/openvscode-server --host 0.0.0.0 --without-connection-token
+    exec /opt/openvscode-server/bin/openvscode-server --host 0.0.0.0 --without-connection-token
 else
-    /opt/openvscode-server/bin/openvscode-server --host 0.0.0.0 --connection-token=${CONNECTION_TOKEN}
+    exec /opt/openvscode-server/bin/openvscode-server --host 0.0.0.0 --connection-token=${CONNECTION_TOKEN}
 fi
