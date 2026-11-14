@@ -35,6 +35,12 @@ export default {
 	'common.orCancel': 'or Cancel ',
 	'common.deletingConfirm': 'Deleting {name}. Confirm ',
 	'common.lastSeen': 'Last Seen',
+	'common.noMatches': 'No matching entries',
+	'common.toggleTheme': 'Toggle theme',
+	'users.emptyTitle': 'No users yet',
+	'users.emptyDescription': 'Create your first user to get started.',
+	'devices.emptyTitle': 'No devices registered',
+	'devices.emptyDescription': 'Register your first device to see it here.',
 
 	// Common - time units
 	'common.seconds': 'seconds',
@@ -74,7 +80,6 @@ export default {
 	// Users
 	'users.view': 'User View',
 	'users.newUser': '+ New User',
-	'users.hideNewUser': '- Hide New User',
 	'users.email': 'Email',
 	'users.creationDate': 'User Creation Date',
 	'users.preauthKeys': 'Preauth Keys',
@@ -92,7 +97,6 @@ export default {
 	'devices.view': 'Device View',
 	'devices.server': 'Server: {status}',
 	'devices.newDevice': '+ New Device',
-	'devices.hideNewDevice': '- Hide New Device',
 	'devices.provideValidKey': 'provide a valid key',
 	'devices.sortDeviceName': 'Device Name',
 	'devices.sortLastSeen': 'Last Seen',

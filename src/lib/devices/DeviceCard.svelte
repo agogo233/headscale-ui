@@ -9,22 +9,24 @@
 	import SetIPDevice from './DeviceCard/SetIPDevice.svelte';
 	import ExpireDevice from './DeviceCard/ExpireDevice.svelte';
 	import { t, translate } from '$lib/i18n';
+	import { alertStore } from '$lib/common/stores';
+	import { toast } from '$lib/common/toast';
 
 	export let device = new Device();
 	let cardExpanded = false;
 	let cardEditing = false;
 
-	// returns button colour based on time difference
-	function timeDifference(date: Date) {
-		let currentTime = new Date();
-		let timeDifference = Math.round((currentTime.getTime() - date.getTime()) / 1000);
-		if (timeDifference < 3600) {
-			return 'bg-success';
-		} else if (timeDifference < 86400) {
-			return 'bg-warning';
+	function copyText(text: string) {
+		if (!navigator.clipboard) {
+			$alertStore = translate('common.copyUnavailable');
+			return;
 		}
-
-		return 'bg-error';
+		navigator.clipboard
+			.writeText(text)
+			.then(() => toast(translate('common.copied'), 'success'))
+			.catch(() => {
+				$alertStore = translate('common.copyFailed');
+			});
 	}
 
 	// maps the backend's register method enum to display text
@@ -42,19 +44,6 @@
 			return translate('devices.regCli');
 		}
 		return method;
-	}
-
-	// return button colour based on online status
-	function onlineBackground(online: boolean) {
-		return online ? 'bg-success' : 'bg-error';
-	}
-
-	function getBadgeColour(date: Date, online?: boolean) {
-		if (online !== undefined) {
-			return onlineBackground(online);
-		}
-
-		return timeDifference(date);
 	}
 
 	// returns time last seen in human readable format
@@ -98,10 +87,18 @@
 		<span class="min-w-64 w-1/2 font-bold">
 			{#if cardEditing == false}
 				{#if device.online}
-					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip={$t('common.online')} /> {device.id}: {device.givenName}
+					<span class="tooltip" data-tip={$t('common.online')}>
+						<span class="relative flex h-3 w-3 align-middle">
+							<span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60"></span>
+							<span class="relative inline-flex h-3 w-3 rounded-full bg-success"></span>
+						</span>
+					</span>
 				{:else}
-					<span class="badge badge-xs tooltip {getBadgeColour(new Date(device.lastSeen), device.online)}" data-tip={device.lastSeen ? timeSince(new Date(device.lastSeen)) : $t('common.neverSeen')} /> {device.id}: {device.givenName}
+					<span class="tooltip" data-tip={device.lastSeen ? timeSince(new Date(device.lastSeen)) : $t('common.neverSeen')}>
+						<span class="inline-flex h-3 w-3 rounded-full bg-error align-middle"></span>
+					</span>
 				{/if}
+				{device.id}: {device.givenName}
 			{/if}
 			<RenameDevice bind:cardEditing {device} />
 		</span>
@@ -139,7 +136,14 @@
 							<td>
 								<ul class="list-disc list-inside">
 									{#each device.ipAddresses as address}
-										<li>{address}</li>
+										<li>
+											{address}
+											<button type="button" class="btn btn-ghost btn-xs px-1 align-middle" on:click={() => copyText(address)} aria-label={$t('common.copy')}>
+												<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+													<path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+												</svg>
+											</button>
+										</li>
 									{/each}
 								</ul>
 								<SetIPDevice {device} />
@@ -162,8 +166,8 @@
 							<td>{registerMethodLabel(device.registerMethod)}</td>
 						</tr>
 						<tr>
-								<DeviceRoutes {device} />
-							</tr>
+							<DeviceRoutes {device} />
+						</tr>
 					</tbody>
 				</table>
 			</div>

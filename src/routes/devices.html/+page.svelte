@@ -9,6 +9,8 @@
 	import PendingAuthRequests from '$lib/devices/PendingAuthRequests.svelte';
 	import SearchDevices from '$lib/devices/SearchDevices.svelte';
 	import SortDevices from '$lib/devices/SortDevices.svelte';
+	import EmptyState from '$lib/common/EmptyState.svelte';
+	import SkeletonCard from '$lib/common/SkeletonCard.svelte';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { t, translate } from '$lib/i18n';
@@ -28,10 +30,9 @@
 	// We define the meat of our script in onMount as doing so forces client side rendering.
 	// Doing so also does not perform any actions until components are initialized
 	onMount(async () => {
-
 		// Handle nodekey
-		newDeviceKey = $page.url.searchParams.get('nodekey') ?? ''
-		newDeviceCardVisible = newDeviceKey.length > 0 ? true : false
+		newDeviceKey = $page.url.searchParams.get('nodekey') ?? '';
+		newDeviceCardVisible = newDeviceKey.length > 0 ? true : false;
 
 		// aggregate the parallel loads: either failing means the page is not usable
 		Promise.allSettled([getUsers(), getDevices()]).then((results) => {
@@ -60,39 +61,56 @@
 				<p class="text-sm text-secondary">{$t('devices.server', { status: healthStatus })}</p>
 			{/if}
 		</div>
+		{#if $apiTestStore === ''}
+			<!-- loading skeletons -->
+			<div class="flex flex-col gap-2 py-2">
+				<SkeletonCard />
+				<SkeletonCard />
+				<SkeletonCard />
+			</div>
+		{/if}
 		{#if $apiTestStore === 'succeeded'}
 			<!-- pending login requests (device approvals) -->
 			<PendingAuthRequests />
 
-			<!-- instantiate device based components -->
-			<table>
-				<tr
-					><td
-						><!-- device creation visibility button -->
-						<div class="p-4">
-							{#if newDeviceCardVisible == false}
-								<button on:click={() => (newDeviceCardVisible = true)} class="btn btn-primary btn-xs capitalize" type="button">{$t('devices.newDevice')}</button>
-							{:else}
-								<button on:click={() => (newDeviceCardVisible = false)} class="btn btn-secondary btn-xs capitalize" type="button">{$t('devices.hideNewDevice')}</button>
-							{/if}
-						</div></td
-					><td><SortDevices /></td><td><SearchDevices /></td></tr
-				>
-			</table>
+			<!-- toolbar -->
+			<div class="px-4 py-3 flex flex-wrap items-center gap-2">
+				<button on:click={() => (newDeviceCardVisible = true)} class="btn btn-primary btn-sm capitalize" type="button">{$t('devices.newDevice')}</button>
+				<div class="grow"></div>
+				<SortDevices />
+				<SearchDevices />
+			</div>
 
 			<CreateDevice bind:newDeviceCardVisible bind:newDeviceKey />
 
-			<div class="flex flex-col gap-2">
-				{#each $deviceStore as device (device.id)}
-					{#if $deviceFilterStore.includes(device)}
-						<DeviceCard {device} />
-					{/if}
-				{/each}
-			</div>
+			{#if $deviceStore.length === 0}
+				<EmptyState title={$t('devices.emptyTitle')} description={$t('devices.emptyDescription')}>
+					<button type="button" class="btn btn-primary btn-sm capitalize" on:click={() => (newDeviceCardVisible = true)}>{$t('devices.newDevice')}</button>
+				</EmptyState>
+			{:else if $deviceFilterStore.length === 0}
+				<EmptyState title={$t('common.noMatches')} />
+			{:else}
+				<!-- instantiate device based components -->
+				<div class="flex flex-col gap-2">
+					{#each $deviceStore as device (device.id)}
+						{#if $deviceFilterStore.includes(device)}
+							<DeviceCard {device} />
+						{/if}
+					{/each}
+				</div>
+			{/if}
 		{/if}
 		{#if $apiTestStore === 'failed'}
-			<div in:fade|global class="max-w-lg  mx-auto p-4 border-4 text-sm text-base-content shadow-lg text-center">
-				<p>{$t('common.apiFailedTitle')}<br />{$t('common.apiFailedDetail')}<br />{$t('common.apiFailedHint')}<a href="{base}/settings.html" class="link link-primary">{$t('common.settingsPage')}</a>{$t('common.apiFailedHintEnd')}</p>
+			<div in:fade|global class="max-w-lg mx-auto mt-8 px-4">
+				<div class="alert alert-error shadow-lg">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+					</svg>
+					<span>{$t('common.apiFailedTitle')}</span>
+				</div>
+				<p class="mt-3 text-center text-sm text-base-content/70">
+					{$t('common.apiFailedDetail')}<br />{$t('common.apiFailedHint')}<a href="{base}/settings.html" class="link link-primary">{$t('common.settingsPage')}</a>{$t('common.apiFailedHintEnd')}
+				</p>
 			</div>
 		{/if}
 	</div>

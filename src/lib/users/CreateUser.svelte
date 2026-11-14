@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
 	import { alertStore } from '$lib/common/stores.js';
 	import { getUsers, newUser } from '$lib/common/apiFunctions.svelte';
 	import { t, translate } from '$lib/i18n';
@@ -11,12 +10,22 @@
 	// The Form used for validating input
 	let newUserForm: HTMLFormElement;
 
+	function close() {
+		newUserCardVisible = false;
+		newUserName = '';
+	}
+
+	function keydownHandler(event: KeyboardEvent) {
+		if (newUserCardVisible && event.key === 'Escape') {
+			close();
+		}
+	}
+
 	function newUserAction(): void {
 		if (newUserForm.reportValidity()) {
 			newUser(newUserName)
 				.then((response) => {
-					newUserCardVisible = false;
-					newUserName = '';
+					close();
 					// refresh users after editing
 					getUsers();
 				})
@@ -30,27 +39,20 @@
 </script>
 
 <!-- html -->
+<svelte:window on:keydown={keydownHandler} />
 {#if newUserCardVisible}
-	<div in:fade|global out:fade|global={{ duration: newUserCardVisible ? 0 : 500 }} class="card-pending">
-		<form on:submit|preventDefault={newUserAction} class="relative" bind:this={newUserForm}>
-			<!-- Input has to be lower case, but we will force lower case on submit -->
-			<input bind:value={newUserName} class="card-input lowercase" required pattern="[a-zA-Z0-9\-\.]+" placeholder={$t('common.name')} />
-		</form>
-		<div>
-			<button on:click={() => newUserAction()}
-				><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline rounded-full hover:bg-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-				</svg></button
-			>
-			<button
-				on:click={() => {
-					newUserCardVisible = false;
-					newUserName = '';
-				}}
-				><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline rounded-full hover:bg-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-				</svg></button
-			>
+	<!-- svelte-ignore a11y-no-static-element-interactions a11y-no-noninteractive-element-interactions a11y-click-events-have-key-events -->
+	<div class="modal modal-open" role="dialog" aria-modal="true" on:click|stopPropagation|self={close}>
+		<div class="modal-box max-w-sm">
+			<h3 class="font-bold text-lg mb-4">{$t('users.newUser')}</h3>
+			<form on:submit|preventDefault={newUserAction} class="relative" bind:this={newUserForm}>
+				<!-- Input has to be lower case, but we will force lower case on submit -->
+				<input bind:value={newUserName} class="input input-bordered w-full lowercase" required pattern="[a-zA-Z0-9\-\.]+" placeholder={$t('common.name')} />
+			</form>
+			<div class="modal-action">
+				<button type="button" class="btn btn-sm" on:click={close}>{$t('common.cancel')}</button>
+				<button type="button" class="btn btn-sm btn-primary capitalize" on:click={newUserAction}>{$t('users.newUser')}</button>
+			</div>
 		</div>
 	</div>
 {/if}

@@ -39,6 +39,12 @@ const zh: Record<Key, string> = {
 	'common.orCancel': '或取消 ',
 	'common.deletingConfirm': '正在删除 {name}。确认 ',
 	'common.lastSeen': '最近在线',
+	'common.noMatches': '没有匹配的条目',
+	'common.toggleTheme': '切换主题',
+	'users.emptyTitle': '暂无用户',
+	'users.emptyDescription': '创建第一个用户即可开始使用。',
+	'devices.emptyTitle': '暂无注册设备',
+	'devices.emptyDescription': '注册第一台设备后即可在此查看。',
 
 	// Common - time units
 	'common.seconds': '秒',
@@ -78,7 +84,6 @@ const zh: Record<Key, string> = {
 	// Users
 	'users.view': '用户视图',
 	'users.newUser': '+ 新用户',
-	'users.hideNewUser': '- 隐藏新用户',
 	'users.email': '邮箱',
 	'users.creationDate': '用户创建时间',
 	'users.preauthKeys': '预授权密钥',
@@ -96,7 +101,6 @@ const zh: Record<Key, string> = {
 	'devices.view': '设备视图',
 	'devices.server': '服务器：{status}',
 	'devices.newDevice': '+ 新设备',
-	'devices.hideNewDevice': '- 隐藏新设备',
 	'devices.provideValidKey': '请提供有效的密钥',
 	'devices.sortDeviceName': '设备名称',
 	'devices.sortLastSeen': '最近在线',

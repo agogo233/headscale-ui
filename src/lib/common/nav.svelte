@@ -3,12 +3,19 @@
 	import { fade } from 'svelte/transition';
 	import { writable } from 'svelte/store';
 	import { base } from '$app/paths';
+	import { page } from '$app/stores';
 	import { showACLPagesStore } from './stores';
 	import { t } from '$lib/i18n';
 
 	// navigation bar variables
 	let navExpanded = writable('');
 	let componentLoaded = false;
+
+	// base-stripped suffix match keeps this correct with or without a base path
+	$: usersActive = $page.url.pathname.endsWith('/users.html');
+	$: groupsActive = $page.url.pathname.endsWith('/groups.html');
+	$: devicesActive = $page.url.pathname.endsWith('/devices.html');
+	$: settingsActive = $page.url.pathname.endsWith('/settings.html');
 
 	onMount(async () => {
 		// get the navbar state from the local store
@@ -42,14 +49,14 @@
 				<span class="indent-4 text-primary font-extrabold">Headscale</span>
 			</button>
 			<div />
-			<a href="{base}/users.html" class="nav-item">
+			<a href="{base}/users.html" class="nav-item" class:nav-active={usersActive}>
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
 				</svg>
 				<span class="indent-4">{$t('nav.users')}</span>
 			</a>
 			{#if $showACLPagesStore}
-				<a href="{base}/groups.html" class="nav-item">
+				<a href="{base}/groups.html" class="nav-item" class:nav-active={groupsActive}>
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 						<path
 							stroke-linecap="round"
@@ -60,13 +67,13 @@
 					<span class="indent-4">{$t('nav.groups')}</span>
 				</a>
 			{/if}
-			<a href="{base}/devices.html" class="nav-item">
+			<a href="{base}/devices.html" class="nav-item" class:nav-active={devicesActive}>
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 					<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
 				</svg>
 				<span class="indent-4">{$t('nav.devices')}</span>
 			</a>
-			<a href="{base}/settings.html" class="nav-item">
+			<a href="{base}/settings.html" class="nav-item" class:nav-active={settingsActive}>
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 					<path
 						stroke-linecap="round"
@@ -94,5 +101,9 @@
 
 	.nav-item {
 		@apply flex items-center text-sm py-4 px-4 h-12 overflow-hidden text-base-content stroke-base-content text-ellipsis cursor-default whitespace-nowrap rounded hover:bg-base-300 transition duration-300 ease-in-out;
+	}
+
+	.nav-active {
+		@apply bg-primary/10 text-primary font-semibold;
 	}
 </style>

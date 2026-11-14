@@ -1,44 +1,35 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import { slide } from 'svelte/transition';
+	import { onMount } from 'svelte';
 	import { alertStore } from '$lib/common/stores.js';
-	import { browser } from '$app/environment';
-	export let ms = 3000;
-	let visible = false;
-	let timeout: number;
+	import { dismissToast, toast, toastStore, type ToastType } from '$lib/common/toast';
+
+	const typeClass: Record<ToastType, string> = {
+		success: 'alert-success',
+		error: 'alert-error',
+		info: 'alert-info',
+		warning: 'alert-warning'
+	};
 
 	onMount(async () => {
 		window.addEventListener('unhandledrejection', function (promiseRejectionEvent) {
-			$alertStore = promiseRejectionEvent.reason;
+			toast(String(promiseRejectionEvent.reason), 'error');
 		});
 	});
 
-	const onMessageChange = (message: string, ms: number) => {
-		clearTimeout(timeout);
-		if (!message) {
-			// hide Alert if message is empty
-			visible = false;
-		} else {
-			visible = true;
-			if (ms > 0 && browser)
-				timeout = window.setTimeout(() => {
-					$alertStore = '';
-				}, ms); // and hide it after ms milliseconds
-		}
-	};
-	$: onMessageChange($alertStore, ms); // whenever the alert store or the ms props changes run onMessageChange
-	onDestroy(() => clearTimeout(timeout)); // make sure we clean-up the timeout
+	// Legacy bridge: existing components publish messages via alertStore;
+	// surface them as error toasts and clear the store so a repeated
+	// identical message re-triggers.
+	$: if ($alertStore) {
+		toast(String($alertStore), 'error');
+		alertStore.set('');
+	}
 </script>
 
-{#if visible}
-	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<div
-		transition:slide|global
-		class="absolute alert text-lg left-1/2 transform -translate-x-1/2 justify-center shadow-lg max-w-lg"
-		on:keypress on:click={() => {
-			$alertStore = '';
-		}}
-	>
-		<p>{$alertStore}</p>
-	</div>
-{/if}
+<div class="toast toast-top toast-end z-[1000] max-w-md">
+	{#each $toastStore as item (item.id)}
+		<div class="alert {typeClass[item.type]} shadow-lg">
+			<span class="text-sm break-all">{item.message}</span>
+			<button type="button" class="btn btn-ghost btn-xs" on:click={() => dismissToast(item.id)}>✕</button>
+		</div>
+	{/each}
+</div>
