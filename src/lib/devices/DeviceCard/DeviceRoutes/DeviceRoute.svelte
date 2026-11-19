@@ -7,8 +7,13 @@
 	export let route = '';
 	export let device = new Device();
 
-	let routeDisabled = false;
+	let routeBusy = false;
 	function approveRouteAction() {
+		if (routeBusy) {
+			return;
+		}
+
+		routeBusy = true;
 		approveRoutes(device.id, [...device.approvedRoutes, route])
 			.then(() => {
 				// refresh users after editing
@@ -16,10 +21,18 @@
 			})
 			.catch((error) => {
 				$alertStore = error;
+			})
+			.finally(() => {
+				routeBusy = false;
 			});
 	}
 
 	function removeRouteAction() {
+		if (routeBusy) {
+			return;
+		}
+
+		routeBusy = true;
 		// The backend expands an exit route to both families, so removing one
 		// must strip both or it re-expands and the route stays approved.
 		const exitRoutes = ['0.0.0.0/0', '::/0'];
@@ -34,6 +47,9 @@
 			})
 			.catch((error) => {
 				$alertStore = error;
+			})
+			.finally(() => {
+				routeBusy = false;
 			});
 	}
 </script>
@@ -41,24 +57,17 @@
 {route}
 {#if device.approvedRoutes.includes(route)}
 	<button
-		on:click={() => {
-			routeDisabled = true;
-			removeRouteAction();
-			routeDisabled = false;
-		}}
+		on:click={removeRouteAction}
 		type="button"
-		class="btn btn-xs tooltip capitalize bg-success text-success-content mx-1">{$t('common.active')}</button
+		class="btn btn-xs tooltip capitalize bg-success text-success-content mx-1"
+		class:disabled={routeBusy}>{$t('common.active')}</button
 	>
 {:else}
 	<button
-		on:click={() => {
-			routeDisabled = true;
-			approveRouteAction();
-			routeDisabled = false;
-		}}
+		on:click={approveRouteAction}
 		type="button"
 		class="btn btn-xs tooltip capitalize bg-secondary text-secondary-content mx-1"
-		class:disabled={routeDisabled}
+		class:disabled={routeBusy}
 		data-tip={$t('devices.clickToEnable')}>{$t('common.pending')}</button
 	>
 {/if}

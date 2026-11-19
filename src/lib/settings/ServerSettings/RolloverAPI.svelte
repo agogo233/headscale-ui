@@ -28,8 +28,11 @@
 						newAPIKeyAction()
 							.then((data) => {
 								$APIKeyStore = data;
-								// expire the old key
-								expireAPIKey(currentKey.prefix);
+								// expire the old key; the new key is already stored, so a
+								// failure only means the old key lingers and must be surfaced
+								expireAPIKey(currentKey.prefix).catch((error) => {
+									$alertStore = error;
+								});
 							})
 							.catch((error) => {
 								$alertStore = error;
