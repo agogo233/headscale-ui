@@ -163,6 +163,7 @@ export default {
 	'devices.authRoutes': 'routes: {routes}',
 	'devices.approve': 'Approve',
 	'devices.reject': 'Reject',
+	'devices.selectUserFirst': 'Select a user before approving',
 
 	// Settings - API keys
 	'settings.apiKeys': 'API Keys',

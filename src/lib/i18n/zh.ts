@@ -167,6 +167,7 @@ const zh: Record<Key, string> = {
 	'devices.authRoutes': '路由：{routes}',
 	'devices.approve': '批准',
 	'devices.reject': '拒绝',
+	'devices.selectUserFirst': '批准前请先选择用户',
 
 	// Settings - API keys
 	'settings.apiKeys': 'API 密钥',

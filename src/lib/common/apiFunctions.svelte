@@ -210,12 +210,6 @@
 		return apiFetch('GET', '/version');
 	}
 
-	export async function approveAuth(authID: string): Promise<any> {
-		return apiFetch('POST', '/api/v1/auth/approve', {
-			authId: authID
-		});
-	}
-
 	export async function rejectAuth(authID: string): Promise<any> {
 		return apiFetch('POST', '/api/v1/auth/reject', {
 			authId: authID
